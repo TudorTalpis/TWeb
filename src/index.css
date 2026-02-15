@@ -1,0 +1,344 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 98%;
+    --foreground: 200 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 10%;
+
+    --primary: 172 66% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 200 25% 15%;
+
+    --muted: 40 15% 93%;
+    --muted-foreground: 200 10% 45%;
+
+    --accent: 28 80% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 172 66% 35%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 40 20% 96%;
+    --sidebar-foreground: 200 25% 15%;
+    --sidebar-primary: 172 66% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 20% 92%;
+    --sidebar-accent-foreground: 200 25% 15%;
+    --sidebar-border: 40 15% 88%;
+    --sidebar-ring: 172 66% 35%;
+
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 205 80% 50%;
+    --info-foreground: 0 0% 100%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(172 66% 35%), hsl(172 66% 28%));
+    --gradient-hero: linear-gradient(135deg, hsl(172 66% 35%), hsl(200 70% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(28 80% 52%), hsl(38 90% 55%));
+
+    --shadow-card: 0 1px 3px 0 hsl(200 25% 10% / 0.06), 0 1px 2px -1px hsl(200 25% 10% / 0.06);
+    --shadow-elevated: 0 4px 12px -2px hsl(200 25% 10% / 0.1), 0 2px 6px -2px hsl(200 25% 10% / 0.06);
+    --shadow-floating: 0 10px 30px -5px hsl(200 25% 10% / 0.12);
+  }
+
+  .dark {
+    --background: 200 25% 7%;
+    --foreground: 40 20% 95%;
+    --card: 200 25% 10%;
+    --card-foreground: 40 20% 95%;
+    --popover: 200 25% 10%;
+    --popover-foreground: 40 20% 95%;
+    --primary: 172 55% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 20% 15%;
+    --secondary-foreground: 40 20% 90%;
+    --muted: 200 20% 15%;
+    --muted-foreground: 200 10% 55%;
+    --accent: 28 80% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 40 20% 95%;
+    --border: 200 20% 18%;
+    --input: 200 20% 18%;
+    --ring: 172 55% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  .shadow-floating {
+    box-shadow: var(--shadow-floating);
+  }
+}
+
+/* FullCalendar — Apple Calendar-inspired styling */
+.provider-calendar .fc {
+  --fc-border-color: hsl(var(--border) / 0.5);
+  --fc-today-bg-color: hsl(var(--primary) / 0.03);
+  --fc-now-indicator-color: hsl(0 72% 51%);
+  --fc-button-bg-color: transparent;
+  --fc-button-border-color: hsl(var(--border));
+  --fc-button-text-color: hsl(var(--foreground));
+  --fc-button-hover-bg-color: hsl(var(--muted));
+  --fc-button-hover-border-color: hsl(var(--border));
+  --fc-button-active-bg-color: hsl(var(--primary));
+  --fc-button-active-border-color: hsl(var(--primary));
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+/* Toolbar */
+.provider-calendar .fc .fc-toolbar {
+  margin-bottom: 0 !important;
+  padding: 0.75rem 0.25rem;
+  gap: 0.5rem;
+}
+
+.provider-calendar .fc .fc-toolbar-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+}
+
+.provider-calendar .fc .fc-button {
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.85rem;
+  text-transform: none;
+  box-shadow: none !important;
+  transition: all 0.15s ease;
+}
+
+.provider-calendar .fc .fc-button:focus {
+  box-shadow: none !important;
+}
+
+.provider-calendar .fc .fc-today-button {
+  background: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.provider-calendar .fc .fc-today-button:disabled {
+  opacity: 0.4;
+}
+
+.provider-calendar .fc .fc-button-group {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+}
+
+.provider-calendar .fc .fc-button-group > .fc-button {
+  border-radius: 0 !important;
+  border: none;
+  border-right: 1px solid hsl(var(--border));
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.provider-calendar .fc .fc-button-group > .fc-button:last-child {
+  border-right: none;
+}
+
+.provider-calendar .fc .fc-button-group > .fc-button.fc-button-active {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Prev/next nav */
+.provider-calendar .fc .fc-prev-button,
+.provider-calendar .fc .fc-next-button {
+  border-radius: 999px !important;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Column headers */
+.provider-calendar .fc .fc-col-header-cell {
+  padding: 0.6rem 0;
+  font-weight: 500;
+  font-size: 0.7rem;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+}
+
+.provider-calendar .fc .fc-col-header-cell.fc-day-today {
+  color: hsl(var(--primary));
+  font-weight: 700;
+}
+
+/* Time grid */
+.provider-calendar .fc .fc-timegrid-slot {
+  border-bottom: 1px solid hsl(var(--border) / 0.25);
+}
+
+.provider-calendar .fc .fc-timegrid-slot-minor {
+  border-bottom: 1px solid hsl(var(--border) / 0.1);
+}
+
+.provider-calendar .fc .fc-timegrid-slot-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground) / 0.7);
+  vertical-align: top;
+  padding: 4px 8px 0 0;
+  text-align: right;
+}
+
+.provider-calendar .fc .fc-timegrid-col {
+  border-right: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* Now indicator — red line like Apple */
+.provider-calendar .fc .fc-timegrid-now-indicator-line {
+  border-color: var(--fc-now-indicator-color);
+  border-width: 2px;
+}
+
+.provider-calendar .fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--fc-now-indicator-color);
+  border-width: 5px;
+  margin-top: -5px;
+}
+
+/* Events — rounded pill style with left accent */
+.provider-calendar .fc .fc-event {
+  border-radius: 0.6rem;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  border-left: 4px solid;
+  font-size: 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+}
+
+.provider-calendar .fc .fc-event:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: scale(1.01);
+  z-index: 10 !important;
+}
+
+.provider-calendar .fc .fc-timegrid-event-harness {
+  margin-right: 4px;
+}
+
+.provider-calendar .fc .fc-timegrid-event .fc-event-main {
+  padding: 4px 6px;
+}
+
+/* Scrollgrid */
+.provider-calendar .fc .fc-scrollgrid {
+  border: none;
+}
+
+.provider-calendar .fc .fc-scrollgrid-section > th,
+.provider-calendar .fc .fc-scrollgrid-section > td {
+  border: none;
+}
+
+/* Background events */
+.provider-calendar .fc .fc-bg-event {
+  opacity: 1;
+}
+
+/* Day grid cells */
+.provider-calendar .fc td,
+.provider-calendar .fc th {
+  border-color: hsl(var(--border) / 0.3);
+}
+
+/* Mobile-friendly calendar */
+@media (max-width: 767px) {
+  .provider-calendar .fc {
+    font-size: 14px;
+  }
+  .provider-calendar .fc .fc-toolbar {
+    padding: 0.5rem 0;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .provider-calendar .fc .fc-toolbar-title {
+    font-size: 1rem;
+  }
+  .provider-calendar .fc .fc-timegrid-slot-label {
+    font-size: 0.7rem;
+    padding: 2px 4px 0 0;
+  }
+  .provider-calendar .fc .fc-col-header-cell {
+    font-size: 0.75rem;
+    padding: 0.4rem 0;
+  }
+  .provider-calendar .fc .fc-event {
+    font-size: 0.8rem;
+  }
+  .provider-calendar .fc .fc-button {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+  .provider-calendar .fc .fc-prev-button,
+  .provider-calendar .fc .fc-next-button {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
