@@ -20,7 +20,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         providerProfiles: state.providerProfiles.map((p) =>
-          p.id === action.payload.id ? { ...p, ...action.payload } : p
+            p.id === action.payload.id ? { ...p, ...action.payload } : p
         ),
       };
 
@@ -30,7 +30,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         services: state.services.map((s) =>
-          s.id === action.payload.id ? { ...s, ...action.payload } : s
+            s.id === action.payload.id ? { ...s, ...action.payload } : s
         ),
       };
     case "DELETE_SERVICE":
@@ -49,7 +49,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         bookings: state.bookings.map((b) =>
-          b.id === action.payload.id ? { ...b, ...action.payload } : b
+            b.id === action.payload.id ? { ...b, ...action.payload } : b
         ),
       };
     case "DELETE_BOOKING":
@@ -61,7 +61,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         applications: state.applications.map((a) =>
-          a.id === action.payload.id ? { ...a, status: action.payload.status } : a
+            a.id === action.payload.id ? { ...a, status: action.payload.status } : a
         ),
       };
 
@@ -71,7 +71,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         notifications: state.notifications.map((n) =>
-          n.id === action.payload ? { ...n, read: true } : n
+            n.id === action.payload ? { ...n, read: true } : n
         ),
       };
     case "MARK_ALL_NOTIFICATIONS_READ":
@@ -84,21 +84,21 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         providerProfiles: state.providerProfiles.map((p) =>
-          p.id === action.payload ? { ...p, featured: !p.featured } : p
+            p.id === action.payload ? { ...p, featured: !p.featured } : p
         ),
       };
     case "TOGGLE_SPONSORED":
       return {
         ...state,
         providerProfiles: state.providerProfiles.map((p) =>
-          p.id === action.payload ? { ...p, sponsored: !p.sponsored } : p
+            p.id === action.payload ? { ...p, sponsored: !p.sponsored } : p
         ),
       };
     case "TOGGLE_BLOCKED":
       return {
         ...state,
         providerProfiles: state.providerProfiles.map((p) =>
-          p.id === action.payload ? { ...p, blocked: !p.blocked } : p
+            p.id === action.payload ? { ...p, blocked: !p.blocked } : p
         ),
       };
 
@@ -116,11 +116,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
 }
 
 function getInitialState(): AppState {
+  const seed = createSeedData();
   const saved = loadState();
   if (saved && saved.users && saved.users.length > 0) {
-    return { ...createSeedData(), ...saved };
+    // If any saved user lacks a password, force re-seed users
+    const needsReseed = saved.users.some((u: any) => !u.password);
+    const users = needsReseed ? seed.users : saved.users;
+    return { ...seed, ...saved, users };
   }
-  return createSeedData();
+  return seed;
 }
 
 interface AppContextValue {
@@ -161,9 +165,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AppContext.Provider value={{ state, dispatch, currentUser, currentProvider, hasRole, resetData }}>
-      {children}
-    </AppContext.Provider>
+      <AppContext.Provider value={{ state, dispatch, currentUser, currentProvider, hasRole, resetData }}>
+        {children}
+      </AppContext.Provider>
   );
 }
 

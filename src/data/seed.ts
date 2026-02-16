@@ -11,11 +11,11 @@ import type {
 } from "@/types";
 
 const DEMO_USERS: AppUser[] = [
-  { id: "user1", name: "Alex Johnson", email: "alex@demo.com", role: "USER", avatar: "" },
-  { id: "prov1", name: "Maria Garcia", email: "maria@demo.com", role: "PROVIDER", avatar: "" },
-  { id: "prov2", name: "James Wilson", email: "james@demo.com", role: "PROVIDER", avatar: "" },
-  { id: "prov3", name: "Sarah Lee", email: "sarah@demo.com", role: "PROVIDER", avatar: "" },
-  { id: "admin1", name: "Admin User", email: "admin@demo.com", role: "ADMIN", avatar: "" },
+  { id: "user1", name: "Alex Johnson", email: "alex@demo.com", password: "1234", role: "USER", avatar: "" },
+  { id: "prov1", name: "Maria Garcia", email: "maria@demo.com", password: "1234", role: "PROVIDER", avatar: "" },
+  { id: "prov2", name: "James Wilson", email: "james@demo.com", password: "1234", role: "PROVIDER", avatar: "" },
+  { id: "prov3", name: "Sarah Lee", email: "sarah@demo.com", password: "1234", role: "PROVIDER", avatar: "" },
+  { id: "admin1", name: "Admin User", email: "admin@demo.com", password: "1234", role: "ADMIN", avatar: "" },
 ];
 
 const DEMO_CATEGORIES: Category[] = [
