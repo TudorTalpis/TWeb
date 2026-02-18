@@ -27,6 +27,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";
 import AdminProviders from "./pages/admin/Providers";
 import AdminProviderDetail from "./pages/admin/ProviderDetail";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="/admin/providers/:providerId" element={
                 <RouteGuard roles={["ADMIN"]}><AdminProviderDetail /></RouteGuard>
               } />
+              <Route path="/about" element={<About />} />
               {/* Slug-based provider route — MUST be last to avoid catching other routes */}
               <Route path="/:providerSlug" element={<ProviderPage />} />
               <Route path="*" element={<NotFound />} />
