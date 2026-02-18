@@ -41,7 +41,7 @@ const Login = (): JSX.Element => {
       return;
     }
 
-    const user = state.users.find((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
+    const user = state.users.find((u) => u.name.toLowerCase() === trimmedName.toLowerCase());
     if (!user) {
       setError("No account found with that name.");
       return;
@@ -57,7 +57,7 @@ const Login = (): JSX.Element => {
   };
 
   const handleGoogleLogin = () => {
-    const user = state.users.find((u: any) => u.role === "USER");
+    const user = state.users.find((u) => u.role === "USER");
     if (user) {
       dispatch({ type: "LOGIN", payload: { userId: user.id } });
       toast.success(`Signed in with Google as ${user.name}`);
