@@ -134,7 +134,7 @@ const Index = () => {
                 <h2 className="relative font-display text-2xl font-bold sm:text-3xl mb-3">{t("home.cta.title")}</h2>
                 <p className="relative text-muted-foreground text-sm mb-6 max-w-md mx-auto">{t("home.cta.desc")}</p>
                 <Link to="/become-provider">
-                  <Button className="rounded-xl gradient-primary text-white px-8 h-11 font-semibold btn-glow shadow-glow">
+                  <Button className="rounded-xl gradient-primary text-white px-8 h-11 font-semibold btn-glow shadow-glow transition-all hover:scale-105">
                     {t("home.becomeProvider")} <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
