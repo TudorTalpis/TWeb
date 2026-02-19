@@ -128,8 +128,8 @@ const Index = () => {
         {!hasRole(["PROVIDER", "ADMIN"]) && (
             <section className="mx-auto max-w-6xl px-4 pb-16">
               <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/5 p-8 sm:p-12 text-center shadow-elevated">
-                <div className="absolute inset-0 bg-grid opacity-40" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-primary/50 to-transparent pointer-events-none" />
                 <Star className="h-8 w-8 text-primary mx-auto mb-4 relative" />
                 <h2 className="relative font-display text-2xl font-bold sm:text-3xl mb-3">{t("home.cta.title")}</h2>
                 <p className="relative text-muted-foreground text-sm mb-6 max-w-md mx-auto">{t("home.cta.desc")}</p>
