@@ -202,20 +202,31 @@ const BecomeProvider = () => {
                       </button>
                     </div>
                 ))}
+                {galleryPhotos.length < 6 && (
+                    <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors">
+                      <Upload className="h-5 w-5 text-muted-foreground/50" />
+                      <span className="text-[10px] text-muted-foreground/50 mt-1">Add Photo</span>
+                      <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            files.slice(0, 6 - galleryPhotos.length).forEach((file) => {
+                              const reader = new FileReader();
+                              reader.onload = (ev) =>
+                                  setGalleryPhotos((prev) => prev.length < 6 ? [...prev, ev.target?.result as string] : prev);
+                              reader.readAsDataURL(file);
+                            });
+                            e.target.value = "";
+                          }}
+                      />
+                    </label>
+                )}
               </div>
-              {galleryPhotos.length < 6 && (
-                  <div className="mt-2 flex gap-2">
-                    <Input
-                        value={newPhotoUrl}
-                        onChange={(e) => setNewPhotoUrl(e.target.value)}
-                        className="rounded-xl" placeholder="Paste image URL..."
-                    />
-                    <Button type="button" variant="outline" size="sm" className="rounded-xl gap-1 shrink-0" onClick={handleAddPhoto} disabled={!newPhotoUrl.trim()}>
-                      <ImagePlus className="h-4 w-4" /> Add
-                    </Button>
-                  </div>
-              )}
             </div>
+
           </div>
 
           <Button type="submit" className="w-full gradient-primary text-primary-foreground rounded-xl h-11" disabled={!isValid}>
