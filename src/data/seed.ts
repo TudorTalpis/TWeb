@@ -103,12 +103,12 @@ const DEMO_BOOKINGS: Booking[] = [
   {
     id: "bk1", userId: "user1", providerId: "pp1", serviceId: "svc1",
     date: futureDate(3), startTime: "08:00", endTime: "10:00",
-    status: "CONFIRMED", createdAt: new Date().toISOString(), userName: "Alex Johnson",
+    status: "CONFIRMED", createdAt: new Date().toISOString(), userName: "Alex Johnson", userPhone: "0712 345 678",
   },
   {
     id: "bk2", userId: "user1", providerId: "pp2", serviceId: "svc3",
     date: futureDate(-2), startTime: "10:00", endTime: "11:00",
-    status: "COMPLETED", createdAt: new Date().toISOString(), userName: "Alex Johnson",
+    status: "COMPLETED", createdAt: new Date().toISOString(), userName: "Alex Johnson", userPhone: "0712 345 678",
   },
 ];
 
