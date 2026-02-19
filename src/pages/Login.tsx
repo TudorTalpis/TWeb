@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ const Login = (): JSX.Element => {
   const { state, dispatch } = useAppStore();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from || "/";
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +42,7 @@ const Login = (): JSX.Element => {
     if (user.password !== password) { setError(t("auth.error.wrongPass")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
     toast.success(`Welcome back, ${user.name}!`);
-    navigate("/");
+    navigate(from);
   };
 
   const handleGoogleLogin = () => {
@@ -48,7 +50,7 @@ const Login = (): JSX.Element => {
     if (user) {
       dispatch({ type: "LOGIN", payload: { userId: user.id } });
       toast.success(`Signed in with Google as ${user.name}`);
-      navigate("/");
+      navigate(from);
     }
   };
 
