@@ -22,9 +22,10 @@ const Login = (): JSX.Element => {
   const [touched, setTouched] = useState(false);
 
   const PASSWORD_RULES = [
-    { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 4 },
+    { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 8 },
+    { id: "upper", label: t("auth.rule.upper"), test: (v: string) => /[A-Z]/.test(v) },
     { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
-    { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 20 },
+    { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 128 },
   ];
 
   const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
@@ -38,8 +39,7 @@ const Login = (): JSX.Element => {
     if (!trimmedName) { setError(t("auth.error.noName")); return; }
     if (!allRulesPassed) { setError(t("auth.error.rulesNotMet")); return; }
     const user = state.users.find((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
-    if (!user) { setError(t("auth.error.noUser")); return; }
-    if (user.password !== password) { setError(t("auth.error.wrongPass")); return; }
+    if (!user || user.password !== password) { setError(t("auth.error.invalidCredentials")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
     toast.success(`Welcome back, ${user.name}!`);
     navigate(from);
@@ -120,7 +120,7 @@ const Login = (): JSX.Element => {
                         onChange={(e) => { setPassword(e.target.value); setError(""); setTouched(true); }}
                         className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
                         autoComplete="current-password"
-                        maxLength={20}
+                        maxLength={128}
                     />
                     <button
                         type="button"

@@ -23,9 +23,10 @@ const SignUp = (): JSX.Element => {
     const [touched, setTouched] = useState(false);
 
     const PASSWORD_RULES = [
-        { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 4 },
+        { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 8 },
+        { id: "upper", label: t("auth.rule.upper"), test: (v: string) => /[A-Z]/.test(v) },
         { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
-        { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 20 },
+        { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 128 },
     ];
 
     const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
@@ -118,7 +119,7 @@ const SignUp = (): JSX.Element => {
                                     onChange={(e) => { setPassword(e.target.value); setError(""); setTouched(true); }}
                                     className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
                                     autoComplete="new-password"
-                                    maxLength={20}
+                                    maxLength={128}
                                 />
                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -147,7 +148,7 @@ const SignUp = (): JSX.Element => {
                                     onChange={(e) => { setConfirm(e.target.value); setError(""); }}
                                     className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
                                     autoComplete="new-password"
-                                    maxLength={20}
+                                    maxLength={128}
                                 />
                                 <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
