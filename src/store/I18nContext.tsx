@@ -93,13 +93,13 @@ const translations: Translations = {
   "settings.profile": { en: "Profile", ro: "Profil", ru: "Профиль" },
   "settings.name": { en: "Display Name", ro: "Nume Afișat", ru: "Отображаемое имя" },
   "settings.email": { en: "Email", ro: "Email", ru: "Электронная почта" },
-   "settings.save": { en: "Save Changes", ro: "Salvează Modificările", ru: "Сохранить изменения" },
-   "settings.saved": { en: "Settings saved!", ro: "Setări salvate!", ru: "Настройки сохранены!" },
-   "settings.language": { en: "Language", ro: "Limbă", ru: "Язык" },
-   "settings.password": { en: "Password", ro: "Parolă", ru: "Пароль" },
-   "settings.phone": { en: "Phone Number", ro: "Număr de Telefon", ru: "Номер телефона" },
-   "settings.passwordNote": { en: "Password and phone changes require a backend. Not available in demo mode.", ro: "Schimbarea parolei și telefonului necesită un backend. Indisponibil în modul demo.", ru: "Смена пароля и телефона требует бэкенда. Недоступно в демо-режиме." },
-   "settings.becomeProvider": { en: "Become a Provider", ro: "Devino Furnizor", ru: "Стать поставщиком" },
+  "settings.save": { en: "Save Changes", ro: "Salvează Modificările", ru: "Сохранить изменения" },
+  "settings.saved": { en: "Settings saved!", ro: "Setări salvate!", ru: "Настройки сохранены!" },
+  "settings.language": { en: "Language", ro: "Limbă", ru: "Язык" },
+  "settings.password": { en: "Password", ro: "Parolă", ru: "Пароль" },
+  "settings.phone": { en: "Phone Number", ro: "Număr de Telefon", ru: "Номер телефона" },
+  "settings.passwordNote": { en: "Password and phone changes require a backend. Not available in demo mode.", ro: "Schimbarea parolei și telefonului necesită un backend. Indisponibil în modul demo.", ru: "Смена пароля и телефона требует бэкенда. Недоступно в демо-режиме." },
+  "settings.becomeProvider": { en: "Become a Provider", ro: "Devino Furnizor", ru: "Стать поставщиком" },
 
   // Reviews
   "review.title": { en: "Leave a Review", ro: "Lasă o Recenzie", ru: "Оставить отзыв" },
@@ -107,6 +107,61 @@ const translations: Translations = {
   "review.comment": { en: "Comment", ro: "Comentariu", ru: "Комментарий" },
   "review.placeholder": { en: "Share your experience with this provider...", ro: "Împărtășește experiența ta cu acest furnizor...", ru: "Поделитесь своим опытом с этим поставщиком..." },
   "review.submit": { en: "Submit Review", ro: "Trimite Recenzia", ru: "Отправить отзыв" },
+
+  // Home extra
+  "home.badge": { en: "Premium Service Marketplace", ro: "Piață de Servicii Premium", ru: "Премиум маркетплейс услуг" },
+  "home.stats.providers": { en: "Active Providers", ro: "Furnizori Activi", ru: "Активные поставщики" },
+  "home.stats.categories": { en: "Service Categories", ro: "Categorii de Servicii", ru: "Категории услуг" },
+  "home.stats.rating": { en: "Average Rating", ro: "Rating Mediu", ru: "Средний рейтинг" },
+  "home.stats.badge.promoted": { en: "Promoted", ro: "Promovat", ru: "Продвигаемые" },
+  "home.stats.badge.featured": { en: "Featured", ro: "Recomandat", ru: "Рекомендуемые" },
+  "home.cta.title": { en: "Ready to offer your services?", ro: "Pregătit să oferi servicii?", ru: "Готовы предлагать услуги?" },
+  "home.cta.desc": { en: "Join our premium marketplace and connect with thousands of clients.", ro: "Alătură-te pieței noastre premium și conectează-te cu mii de clienți.", ru: "Присоединяйтесь к нашей премиум-площадке и общайтесь с тысячами клиентов." },
+
+  // Auth
+  "auth.signIn.title": { en: "Sign In", ro: "Autentificare", ru: "Войти" },
+  "auth.signIn.subtitle": { en: "Access your ServeHub account", ro: "Accesează contul tău ServeHub", ru: "Войдите в свой аккаунт ServeHub" },
+  "auth.signIn.google": { en: "Continue with Google", ro: "Continuă cu Google", ru: "Войти через Google" },
+  "auth.signIn.button": { en: "Sign In", ro: "Autentificare", ru: "Войти" },
+  "auth.signIn.noAccount": { en: "Don't have an account?", ro: "Nu ai cont?", ru: "Нет аккаунта?" },
+  "auth.signIn.signUp": { en: "Sign Up", ro: "Înregistrare", ru: "Зарегистрироваться" },
+  "auth.signIn.demoAccounts": { en: "Demo Accounts (password: 1234)", ro: "Conturi Demo (parolă: 1234)", ru: "Демо-аккаунты (пароль: 1234)" },
+  "auth.signUp.title": { en: "Create Account", ro: "Creare Cont", ru: "Создать аккаунт" },
+  "auth.signUp.subtitle": { en: "Join ServeHub today", ro: "Alătură-te ServeHub azi", ru: "Присоединяйтесь к ServeHub сегодня" },
+  "auth.signUp.button": { en: "Create Account", ro: "Creează Cont", ru: "Создать аккаунт" },
+  "auth.signUp.hasAccount": { en: "Already have an account?", ro: "Ai deja cont?", ru: "Уже есть аккаунт?" },
+  "auth.field.name": { en: "Full Name", ro: "Nume Complet", ru: "Полное имя" },
+  "auth.field.email": { en: "Email Address", ro: "Adresă Email", ru: "Электронная почта" },
+  "auth.field.password": { en: "Password", ro: "Parolă", ru: "Пароль" },
+  "auth.field.confirm": { en: "Confirm Password", ro: "Confirmă Parola", ru: "Подтвердите пароль" },
+  "auth.field.namePlaceholder": { en: "e.g. Alex Johnson", ro: "ex. Alex Ionescu", ru: "напр. Алекс Иванов" },
+  "auth.field.emailPlaceholder": { en: "e.g. alex@example.com", ro: "ex. alex@exemplu.ro", ru: "напр. alex@example.com" },
+  "auth.field.passwordPlaceholder": { en: "Enter your password", ro: "Introdu parola", ru: "Введите пароль" },
+  "auth.field.newPasswordPlaceholder": { en: "Create a password", ro: "Creează o parolă", ru: "Создайте пароль" },
+  "auth.field.confirmPlaceholder": { en: "Repeat your password", ro: "Repetă parola", ru: "Повторите пароль" },
+  "auth.rule.length": { en: "Minimum 4 characters", ro: "Minim 4 caractere", ru: "Минимум 4 символа" },
+  "auth.rule.number": { en: "Contains a number", ro: "Conține o cifră", ru: "Содержит цифру" },
+  "auth.rule.maxlen": { en: "Maximum 20 characters", ro: "Maxim 20 caractere", ru: "Максимум 20 символов" },
+  "auth.rule.match": { en: "Passwords match", ro: "Parolele coincid", ru: "Пароли совпадают" },
+  "auth.rule.noMatch": { en: "Passwords do not match", ro: "Parolele nu coincid", ru: "Пароли не совпадают" },
+  "auth.error.noName": { en: "Please enter your name.", ro: "Te rugăm să introduci numele.", ru: "Пожалуйста, введите имя." },
+  "auth.error.rulesNotMet": { en: "Password does not meet the requirements.", ro: "Parola nu îndeplinește cerințele.", ru: "Пароль не соответствует требованиям." },
+  "auth.error.noUser": { en: "No account found with that name.", ro: "Niciun cont găsit cu acest nume.", ru: "Аккаунт с таким именем не найден." },
+  "auth.error.wrongPass": { en: "Incorrect password.", ro: "Parolă incorectă.", ru: "Неверный пароль." },
+  "auth.error.noFullName": { en: "Please enter your full name.", ro: "Te rugăm să introduci numele complet.", ru: "Пожалуйста, введите полное имя." },
+  "auth.error.nameTooShort": { en: "Name must be at least 2 characters.", ro: "Numele trebuie să aibă cel puțin 2 caractere.", ru: "Имя должно содержать не менее 2 символов." },
+  "auth.error.noEmail": { en: "Please enter your email address.", ro: "Te rugăm să introduci adresa de email.", ru: "Пожалуйста, введите электронную почту." },
+  "auth.error.invalidEmail": { en: "Please enter a valid email address.", ro: "Te rugăm să introduci o adresă de email validă.", ru: "Пожалуйста, введите корректный email." },
+  "auth.error.nameTaken": { en: "An account with that name already exists.", ro: "Există deja un cont cu acest nume.", ru: "Аккаунт с таким именем уже существует." },
+  "auth.error.emailTaken": { en: "An account with that email already exists.", ro: "Există deja un cont cu acest email.", ru: "Аккаунт с таким email уже существует." },
+  "auth.error.passNoMatch": { en: "Passwords do not match.", ro: "Parolele nu coincid.", ru: "Пароли не совпадают." },
+
+  // Footer
+  "footer.tagline": { en: "Premium Service Marketplace", ro: "Piață de Servicii Premium", ru: "Премиум маркетплейс услуг" },
+  "footer.privacy": { en: "Privacy", ro: "Confidențialitate", ru: "Конфиденциальность" },
+  "footer.terms": { en: "Terms", ro: "Termeni", ru: "Условия" },
+  "footer.about": { en: "About", ro: "Despre", ru: "О нас" },
+  "footer.copy": { en: "© 2026 ServeHub — Premium Service Marketplace", ro: "© 2026 ServeHub — Piață de Servicii Premium", ru: "© 2026 ServeHub — Премиум маркетплейс услуг" },
 
   // Common
   "common.min": { en: "min", ro: "min", ru: "мин" },
@@ -138,9 +193,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </I18nContext.Provider>
+      <I18nContext.Provider value={{ lang, setLang, t }}>
+        {children}
+      </I18nContext.Provider>
   );
 }
 

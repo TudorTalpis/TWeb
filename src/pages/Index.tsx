@@ -17,20 +17,16 @@ const Index = () => {
       <div className="animate-fade-in">
         {/* Hero */}
         <section className="relative overflow-hidden px-4 py-20 sm:py-32">
-          {/* Background layers */}
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background/60" />
           <div className="absolute inset-0 bg-radial-glow opacity-80" />
           <div className="absolute inset-0 bg-grid opacity-60" />
-
-          {/* Floating orbs */}
           <div className="absolute top-20 left-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
           <div className="absolute bottom-10 right-1/4 h-48 w-48 rounded-full bg-accent/8 blur-3xl pointer-events-none" />
 
           <div className="relative mx-auto max-w-4xl text-center">
-            {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 mb-8">
               <Zap className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide">Premium Service Marketplace</span>
+              <span className="text-xs font-semibold text-primary tracking-wide">{t("home.badge")}</span>
             </div>
 
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-6xl leading-[1.1]">
@@ -58,7 +54,6 @@ const Index = () => {
               )}
             </div>
 
-            {/* Trust badges */}
             <div className="mt-14 flex flex-wrap items-center justify-center gap-8">
               {[
                 { icon: Shield, label: t("home.verified"), color: "text-primary" },
@@ -79,9 +74,9 @@ const Index = () => {
           <div className="mx-auto max-w-6xl px-4 py-5">
             <div className="grid grid-cols-3 divide-x divide-border/50 text-center">
               {[
-                { value: `${activeProviders.length}+`, label: "Active Providers" },
-                { value: `${state.categories.length}`, label: "Service Categories" },
-                { value: "4.9★", label: "Average Rating" },
+                { value: `${activeProviders.length}+`, label: t("home.stats.providers") },
+                { value: `${state.categories.length}`, label: t("home.stats.categories") },
+                { value: "4.9★", label: t("home.stats.rating") },
               ].map((stat) => (
                   <div key={stat.label} className="px-4 py-1">
                     <p className="font-display text-xl font-bold text-foreground">{stat.value}</p>
@@ -95,7 +90,7 @@ const Index = () => {
         {/* Sponsored */}
         {sponsored.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-              <SectionHeader title={t("home.sponsored")} badge="Promoted" />
+              <SectionHeader title={t("home.sponsored")} badge={t("home.stats.badge.promoted")} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {sponsored.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
@@ -105,7 +100,7 @@ const Index = () => {
         {/* Featured */}
         {featured.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
-              <SectionHeader title={t("home.featured")} badge="Featured" />
+              <SectionHeader title={t("home.featured")} badge={t("home.stats.badge.featured")} />
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {featured.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
@@ -140,11 +135,11 @@ const Index = () => {
                 <div className="absolute inset-0 bg-grid opacity-40" />
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
                 <Star className="h-8 w-8 text-primary mx-auto mb-4 relative" />
-                <h2 className="relative font-display text-2xl font-bold sm:text-3xl mb-3">Ready to offer your services?</h2>
-                <p className="relative text-muted-foreground text-sm mb-6 max-w-md mx-auto">Join our premium marketplace and connect with thousands of clients looking for quality service providers.</p>
+                <h2 className="relative font-display text-2xl font-bold sm:text-3xl mb-3">{t("home.cta.title")}</h2>
+                <p className="relative text-muted-foreground text-sm mb-6 max-w-md mx-auto">{t("home.cta.desc")}</p>
                 <Link to="/become-provider">
                   <Button className="rounded-xl gradient-primary text-white px-8 h-11 font-semibold btn-glow shadow-glow">
-                    Become a Provider <ArrowRight className="h-4 w-4 ml-1" />
+                    {t("home.becomeProvider")} <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>
               </div>

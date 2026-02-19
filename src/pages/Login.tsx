@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
+import { useI18n } from "@/store/I18nContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,20 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Zap, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-const PASSWORD_RULES = [
-  { id: "length", label: "Minimum 4 characters", test: (v: string) => v.length >= 4 },
-  { id: "number", label: "Contains a number", test: (v: string) => /\d/.test(v) },
-  { id: "maxlen", label: "Maximum 20 characters", test: (v: string) => v.length <= 20 },
-];
-
 const Login = (): JSX.Element => {
   const { state, dispatch } = useAppStore();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState(false);
+
+  const PASSWORD_RULES = [
+    { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 4 },
+    { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
+    { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 20 },
+  ];
 
   const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
   const allRulesPassed = passedRules.every((r) => r.passed);
@@ -31,11 +33,11 @@ const Login = (): JSX.Element => {
     setTouched(true);
     setError("");
     const trimmedName = name.trim();
-    if (!trimmedName) { setError("Please enter your name."); return; }
-    if (!allRulesPassed) { setError("Password does not meet the requirements."); return; }
+    if (!trimmedName) { setError(t("auth.error.noName")); return; }
+    if (!allRulesPassed) { setError(t("auth.error.rulesNotMet")); return; }
     const user = state.users.find((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
-    if (!user) { setError("No account found with that name."); return; }
-    if (user.password !== password) { setError("Incorrect password."); return; }
+    if (!user) { setError(t("auth.error.noUser")); return; }
+    if (user.password !== password) { setError(t("auth.error.wrongPass")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
     toast.success(`Welcome back, ${user.name}!`);
     navigate("/");
@@ -52,24 +54,20 @@ const Login = (): JSX.Element => {
 
   return (
       <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
-        {/* Background glow */}
         <div className="absolute inset-0 bg-radial-glow opacity-60 pointer-events-none" />
         <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
 
         <div className="relative w-full max-w-md animate-fade-in">
-          {/* Card */}
           <div className="rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 shadow-floating">
-            {/* Header */}
             <div className="text-center mb-8">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-glow animate-glow-pulse">
                 <Zap className="h-7 w-7 text-white" />
               </div>
-              <h1 className="font-display text-2xl font-bold text-foreground">Sign In</h1>
-              <p className="mt-2 text-muted-foreground text-sm">Access your ServeHub account</p>
+              <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signIn.title")}</h1>
+              <p className="mt-2 text-muted-foreground text-sm">{t("auth.signIn.subtitle")}</p>
             </div>
 
             <div className="space-y-5">
-              {/* Google button */}
               <Button
                   type="button"
                   variant="outline"
@@ -82,7 +80,7 @@ const Login = (): JSX.Element => {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                Continue with Google
+                {t("auth.signIn.google")}
               </Button>
 
               <div className="relative">
@@ -96,11 +94,11 @@ const Login = (): JSX.Element => {
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-sm font-medium text-foreground/80">Full Name</Label>
+                  <Label htmlFor="name" className="text-sm font-medium text-foreground/80">{t("auth.field.name")}</Label>
                   <Input
                       id="name"
                       type="text"
-                      placeholder="e.g. Alex Johnson"
+                      placeholder={t("auth.field.namePlaceholder")}
                       value={name}
                       onChange={(e) => { setName(e.target.value); setError(""); }}
                       className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
@@ -110,12 +108,12 @@ const Login = (): JSX.Element => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-sm font-medium text-foreground/80">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground/80">{t("auth.field.password")}</Label>
                   <div className="relative">
                     <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t("auth.field.passwordPlaceholder")}
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setError(""); setTouched(true); }}
                         className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
@@ -156,13 +154,12 @@ const Login = (): JSX.Element => {
                 )}
 
                 <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white font-semibold btn-glow shadow-glow transition-all hover:scale-[1.02]">
-                  Sign In
+                  {t("auth.signIn.button")}
                 </Button>
               </form>
 
-              {/* Demo accounts */}
               <div className="rounded-2xl border border-border/40 bg-secondary/30 p-4">
-                <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">Demo Accounts (password: 1234)</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">{t("auth.signIn.demoAccounts")}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {state.users.map((u: any) => (
                       <button
@@ -181,9 +178,9 @@ const Login = (): JSX.Element => {
           </div>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {t("auth.signIn.noAccount")}{" "}
             <Link to="/auth/signup" className="text-primary font-semibold hover:text-primary/80 link-underline transition-colors">
-              Sign Up
+              {t("auth.signIn.signUp")}
             </Link>
           </p>
         </div>
