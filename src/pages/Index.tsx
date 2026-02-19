@@ -24,10 +24,6 @@ const Index = () => {
           <div className="absolute bottom-10 right-1/4 h-48 w-48 rounded-full bg-accent/8 blur-3xl pointer-events-none" />
 
           <div className="relative mx-auto max-w-4xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 mb-8">
-              <Zap className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold text-primary tracking-wide">{t("home.badge")}</span>
-            </div>
 
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-6xl leading-[1.1]">
               {t("home.hero.title1")}<br />
