@@ -29,7 +29,6 @@ const Login = (): JSX.Element => {
   ];
 
   const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
-  const allRulesPassed = passedRules.every((r) => r.passed);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +36,10 @@ const Login = (): JSX.Element => {
     setError("");
     const trimmedName = name.trim();
     if (!trimmedName) { setError(t("auth.error.noName")); return; }
-    if (!allRulesPassed) { setError(t("auth.error.rulesNotMet")); return; }
-    const user = state.users.find((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
+    const loginValue = trimmedName.toLowerCase();
+    const user = state.users.find(
+      (u: any) => u.name.toLowerCase() === loginValue || u.email.toLowerCase() === loginValue
+    );
     if (!user || user.password !== password) { setError(t("auth.error.invalidCredentials")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
     toast.success(`Welcome back, ${user.name}!`);
@@ -167,7 +168,7 @@ const Login = (): JSX.Element => {
                       <button
                           key={u.id}
                           type="button"
-                          onClick={() => { setName(u.name); setPassword("1234"); setTouched(true); setError(""); }}
+                          onClick={() => { setName(u.name); setPassword(u.password); setTouched(true); setError(""); }}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-border/50 bg-card px-2.5 py-1.5 text-xs font-medium transition-all hover:bg-secondary hover:border-primary/30 hover:text-primary"
                       >
                         {u.name.split(" ")[0]}

@@ -119,9 +119,13 @@ function getInitialState(): AppState {
   const seed = createSeedData();
   const saved = loadState();
   if (saved && saved.users && saved.users.length > 0) {
-    // If any saved user lacks a password, force re-seed users
-    const needsReseed = saved.users.some((u: any) => !u.password);
-    const users = needsReseed ? seed.users : saved.users;
+    // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
+    const seedById = new Map(seed.users.map((u) => [u.id, u]));
+    const savedUsers = saved.users as any[];
+    const users = savedUsers.map((u) => seedById.get(u.id) ?? u);
+    for (const seedUser of seed.users) {
+      if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
+    }
     return { ...seed, ...saved, users };
   }
   return seed;
