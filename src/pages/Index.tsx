@@ -27,7 +27,7 @@ const Index = () => {
 
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-6xl leading-[1.1]">
               {t("home.hero.title1")}<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent text-glow">
+              <span className="text-primary  transition-all inline-block hover:scale-105 cursor-pointer">
               {t("home.hero.title2")}
             </span>
             </h1>

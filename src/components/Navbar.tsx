@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, Menu, X, LogOut, ChevronDown, LayoutDashboard, Home, Search, Grid3X3, Settings, RotateCcw, Zap } from "lucide-react";
+import { Bell, Menu, X, LogOut, ChevronDown, LayoutDashboard, Home, Search, Grid3X3, Settings, RotateCcw, Zap, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n, LANGUAGE_OPTIONS } from "@/store/I18nContext";
 import { useState, useRef, useEffect } from "react";
@@ -22,6 +23,7 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { theme, setTheme } = useTheme();
 
   const unreadCount = state.notifications.filter(
       (n) => n.userId === state.session.userId && !n.read
@@ -101,6 +103,14 @@ export function Navbar() {
 
           {/* Right actions */}
           <div className="ml-auto flex items-center gap-1.5">
+            {/* Theme toggle */}
+            <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             {/* Language switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
