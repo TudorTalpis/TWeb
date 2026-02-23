@@ -6,6 +6,75 @@
 
 @layer base {
   :root {
+    /* Light palette */
+    --background: 220 20% 97%;
+    --foreground: 228 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 228 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 25% 12%;
+
+    /* Electric Indigo primary */
+    --primary: 249 89% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 18% 92%;
+    --secondary-foreground: 228 20% 30%;
+
+    --muted: 220 15% 93%;
+    --muted-foreground: 220 12% 45%;
+
+    /* Electric Teal accent */
+    --accent: 167 82% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 86%;
+    --input: 220 15% 88%;
+    --ring: 249 89% 60%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 220 20% 96%;
+    --sidebar-foreground: 220 15% 35%;
+    --sidebar-primary: 249 89% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 18% 92%;
+    --sidebar-accent-foreground: 228 20% 20%;
+    --sidebar-border: 220 15% 88%;
+    --sidebar-ring: 249 89% 60%;
+
+    --success: 152 68% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 205 80% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(249 89% 60%), hsl(267 85% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 20% 97%), hsl(230 20% 94%), hsl(240 18% 95%));
+    --gradient-accent: linear-gradient(135deg, hsl(167 82% 42%), hsl(190 80% 45%));
+    --gradient-glow: linear-gradient(135deg, hsl(249 89% 60% / 0.08), hsl(167 82% 42% / 0.04));
+
+    /* Glass */
+    --glass-bg: hsl(0 0% 100% / 0.75);
+    --glass-border: hsl(220 15% 80% / 0.5);
+
+    /* Shadows */
+    --shadow-card: 0 2px 8px 0 hsl(220 20% 70% / 0.15);
+    --shadow-elevated: 0 8px 24px -4px hsl(220 20% 70% / 0.2), 0 2px 8px -2px hsl(249 89% 60% / 0.04);
+    --shadow-floating: 0 20px 60px -10px hsl(220 20% 70% / 0.3);
+    --shadow-glow: 0 0 20px hsl(249 89% 60% / 0.2);
+    --shadow-glow-accent: 0 0 20px hsl(167 82% 42% / 0.2);
+  }
+
+  .dark {
     /* Dark futuristic palette */
     --background: 228 25% 8%;
     --foreground: 220 20% 92%;
