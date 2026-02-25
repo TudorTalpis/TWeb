@@ -180,6 +180,13 @@ const Login = (): JSX.Element => {
             ))}
           </div>
         </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link to="/signup" className="font-medium text-primary hover:underline transition-colors">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );
