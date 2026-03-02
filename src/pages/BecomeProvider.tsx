@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,6 @@ import { Check, ImagePlus, X, Link as LinkIcon, Upload } from "lucide-react";
 
 const BecomeProvider = () => {
   const { state, dispatch, currentUser } = useAppStore();
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -22,7 +21,13 @@ const BecomeProvider = () => {
   const [newPhotoUrl, setNewPhotoUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const existingApp = state.applications.find((a) => a.userId === currentUser?.id);
+  const latestApplication = currentUser
+    ? state.applications
+        .filter((a) => a.userId === currentUser.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+    : undefined;
+  const blockingApplication =
+    latestApplication && latestApplication.status !== "REJECTED" ? latestApplication : undefined;
 
   // Check slug uniqueness
   const slugTaken = slug.trim().length > 0 && state.providerProfiles.some(
@@ -67,15 +72,14 @@ const BecomeProvider = () => {
   };
 
   if (!currentUser) {
-    navigate("/auth/login", { state: { from: "/become-provider" } });
-    return null;
+    return <Navigate to="/auth/login" state={{ from: "/become-provider" }} replace />;
   }
 
-  if (existingApp) {
+  if (blockingApplication) {
     return (
         <div className="container mx-auto max-w-md px-4 py-16 text-center animate-fade-in">
-          <h1 className="text-2xl font-bold mb-2">Application {existingApp.status === "PENDING" ? "Submitted" : existingApp.status.toLowerCase()}</h1>
-          <p className="text-muted-foreground text-sm">Your application for "{existingApp.name}" is currently <strong>{existingApp.status}</strong>.</p>
+          <h1 className="text-2xl font-bold mb-2">Application {blockingApplication.status === "PENDING" ? "Submitted" : blockingApplication.status.toLowerCase()}</h1>
+          <p className="text-muted-foreground text-sm">Your application for "{blockingApplication.name}" is currently <strong>{blockingApplication.status}</strong>.</p>
         </div>
     );
   }
