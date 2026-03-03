@@ -28,6 +28,8 @@ const BecomeProvider = () => {
     : undefined;
   const blockingApplication =
     latestApplication && latestApplication.status !== "REJECTED" ? latestApplication : undefined;
+  const latestRejectedApplication =
+    latestApplication && latestApplication.status === "REJECTED" ? latestApplication : undefined;
 
   // Check slug uniqueness
   const slugTaken = slug.trim().length > 0 && state.providerProfiles.some(
@@ -65,6 +67,7 @@ const BecomeProvider = () => {
           title: "New Provider Application",
           message: `${currentUser.name} applied to become a provider: ${name}`,
           read: false, createdAt: new Date().toISOString(),
+          linkTo: "/admin/applications",
         },
       });
     });
@@ -102,6 +105,12 @@ const BecomeProvider = () => {
       <div className="container mx-auto max-w-2xl px-4 py-8 animate-fade-in">
         <h1 className="text-2xl font-bold mb-2">Become a Provider</h1>
         <p className="text-sm text-muted-foreground mb-8">Fill out your profile information and add photos to get started.</p>
+        {latestRejectedApplication?.rejectReason && (
+          <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+            <p className="text-sm font-medium text-destructive">Last rejection reason</p>
+            <p className="mt-1 text-sm text-destructive/90">{latestRejectedApplication.rejectReason}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}

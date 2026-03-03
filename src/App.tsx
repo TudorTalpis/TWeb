@@ -26,6 +26,7 @@ import ProviderBookings from "./pages/provider/Bookings";
 import ProviderDashboard from "./pages/provider/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";
+import ApplicationDetail from "./pages/admin/ApplicationDetail";
 import AdminProviders from "./pages/admin/Providers";
 import AdminProviderDetail from "./pages/admin/ProviderDetail";
 import About from "./pages/About";
@@ -94,6 +95,9 @@ const App = () => (
                     } />
                     <Route path="/admin/applications" element={
                       <RouteGuard roles={["ADMIN"]}><AdminApplications /></RouteGuard>
+                    } />
+                    <Route path="/admin/applications/:applicationId" element={
+                      <RouteGuard roles={["ADMIN"]}><ApplicationDetail /></RouteGuard>
                     } />
                     <Route path="/admin/providers" element={
                       <RouteGuard roles={["ADMIN"]}><AdminProviders /></RouteGuard>

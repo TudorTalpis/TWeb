@@ -61,7 +61,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         applications: state.applications.map((a) =>
-            a.id === action.payload.id ? { ...a, status: action.payload.status } : a
+            a.id === action.payload.id
+              ? {
+                  ...a,
+                  status: action.payload.status,
+                  rejectReason: action.payload.status === "REJECTED" ? action.payload.rejectReason : undefined,
+                }
+              : a
         ),
       };
 

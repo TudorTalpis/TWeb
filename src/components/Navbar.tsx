@@ -182,7 +182,7 @@ export function Navbar() {
                           </button>
                           <div className="border-t border-border/50 mt-1 pt-1">
                             <button
-                                onClick={() => { dispatch({ type: "LOGOUT" }); setUserMenuOpen(false); }}
+                                onClick={() => { dispatch({ type: "LOGOUT" }); setUserMenuOpen(false); navigate("/auth/login", { replace: true }); }}
                                 className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
                             >
                               <LogOut className="h-4 w-4" /> {t("nav.signOut")}
@@ -270,7 +270,7 @@ export function Navbar() {
                       </button>
                       <button
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                          onClick={() => { dispatch({ type: "LOGOUT" }); setMenuOpen(false); }}
+                          onClick={() => { dispatch({ type: "LOGOUT" }); setMenuOpen(false); navigate("/auth/login", { replace: true }); }}
                       >
                         <LogOut className="h-4 w-4" /> {t("nav.signOut")}
                       </button>

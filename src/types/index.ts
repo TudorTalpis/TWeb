@@ -109,6 +109,7 @@ export interface ProviderApplication {
   avatar: string;
   galleryPhotos: string[];
   status: ApplicationStatus;
+  rejectReason?: string;
   createdAt: string;
 }
 
@@ -177,7 +178,7 @@ export type AppAction =
   | { type: "UPDATE_BOOKING"; payload: Partial<Booking> & { id: string } }
   | { type: "DELETE_BOOKING"; payload: string }
   | { type: "ADD_APPLICATION"; payload: ProviderApplication }
-  | { type: "UPDATE_APPLICATION"; payload: { id: string; status: ApplicationStatus } }
+  | { type: "UPDATE_APPLICATION"; payload: { id: string; status: ApplicationStatus; rejectReason?: string } }
   | { type: "ADD_NOTIFICATION"; payload: AppNotification }
   | { type: "MARK_NOTIFICATION_READ"; payload: string }
   | { type: "MARK_ALL_NOTIFICATIONS_READ" }
