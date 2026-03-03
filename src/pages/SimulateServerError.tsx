@@ -60,7 +60,7 @@ const SimulateServerError = () => {
           <Button variant="outline" className="rounded-xl">Simulate exception</Button>
         </Link>
         <Link to="/">
-          <Button className="rounded-xl gradient-primary text-primary-foreground">Back Home</Button>
+          <Button className="rounded-xl bg-primary text-primary-foreground">Back Home</Button>
         </Link>
       </div>
     </div>
@@ -68,3 +68,4 @@ const SimulateServerError = () => {
 };
 
 export default SimulateServerError;
+

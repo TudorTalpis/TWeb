@@ -233,7 +233,7 @@ const BecomeProvider = () => {
 
           </div>
 
-          <Button type="submit" className="w-full gradient-primary text-primary-foreground rounded-xl h-11" disabled={!isValid}>
+          <Button type="submit" className="w-full bg-primary text-primary-foreground rounded-xl h-11" disabled={!isValid}>
             Submit Application
           </Button>
         </form>
@@ -242,3 +242,4 @@ const BecomeProvider = () => {
 };
 
 export default BecomeProvider;
+

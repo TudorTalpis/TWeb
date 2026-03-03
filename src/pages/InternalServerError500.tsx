@@ -29,7 +29,7 @@ const InternalServerError500 = () => {
       )}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <Link to="/simulate/500?mode=throw">
-          <Button className="rounded-xl gradient-primary text-primary-foreground">Retry Simulation</Button>
+          <Button className="rounded-xl bg-primary text-primary-foreground">Retry Simulation</Button>
         </Link>
         <Link to="/">
           <Button variant="outline" className="rounded-xl">Back Home</Button>
@@ -40,3 +40,4 @@ const InternalServerError500 = () => {
 };
 
 export default InternalServerError500;
+

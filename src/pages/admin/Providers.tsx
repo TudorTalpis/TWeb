@@ -32,7 +32,7 @@ const AdminProviders = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-sm">{p.name}</h3>
                       {p.featured && <Badge variant="outline" className="border-primary/40 text-primary text-[10px] rounded-full px-2">Featured</Badge>}
-                      {p.sponsored && <Badge className="gradient-accent text-accent-foreground border-0 text-[10px] rounded-full px-2">Sponsored</Badge>}
+                      {p.sponsored && <Badge className="bg-accent text-accent-foreground border-0 text-[10px] rounded-full px-2">Sponsored</Badge>}
                       {p.blocked && <Badge variant="destructive" className="text-[10px] rounded-full px-2">Blocked</Badge>}
                     </div>
                     <div className="mt-1.5 text-xs text-muted-foreground flex items-center gap-3">
@@ -91,3 +91,4 @@ const AdminProviders = () => {
 };
 
 export default AdminProviders;
+

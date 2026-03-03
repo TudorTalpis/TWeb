@@ -66,13 +66,10 @@ const SignUp = (): JSX.Element => {
 
     return (
         <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
-            <div className="absolute inset-0 bg-radial-glow opacity-60 pointer-events-none" />
-            <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-
             <div className="relative w-full max-w-md animate-fade-in">
-                <div className="rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 shadow-floating">
+                <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
                     <div className="text-center mb-8">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-glow animate-glow-pulse">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
                             <UserPlus className="h-7 w-7 text-white" />
                         </div>
                         <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signUp.title")}</h1>
@@ -171,7 +168,7 @@ const SignUp = (): JSX.Element => {
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white font-semibold btn-glow shadow-glow transition-all hover:scale-[1.02]">
+                        <Button type="submit" className="h-11 w-full rounded-xl bg-primary font-semibold text-white">
                             {t("auth.signUp.button")}
                         </Button>
                     </form>

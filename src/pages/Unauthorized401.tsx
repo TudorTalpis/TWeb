@@ -23,7 +23,7 @@ const Unauthorized401 = () => {
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         <Link to="/auth/login">
-          <Button className="rounded-xl gradient-primary text-primary-foreground">Go to Login</Button>
+          <Button className="rounded-xl bg-primary text-primary-foreground">Go to Login</Button>
         </Link>
         <Link to="/">
           <Button variant="outline" className="rounded-xl">Back Home</Button>
@@ -34,3 +34,4 @@ const Unauthorized401 = () => {
 };
 
 export default Unauthorized401;
+

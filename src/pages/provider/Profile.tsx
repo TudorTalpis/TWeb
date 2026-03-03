@@ -61,7 +61,7 @@ const ProviderProfilePage = () => {
       <ProviderPanelLayout>
         <div className="max-w-2xl space-y-6">
           {/* Cover Photo Preview */}
-          <div className="relative rounded-2xl overflow-hidden border h-40 bg-gradient-to-br from-primary/10 to-accent/10 group cursor-pointer"
+          <div className="relative rounded-2xl overflow-hidden border h-40 bg-secondary group cursor-pointer"
                onClick={() => coverInputRef.current?.click()}
           >
             {form.coverPhoto ? (
@@ -165,7 +165,7 @@ const ProviderProfilePage = () => {
                 )}
               </div>
 
-              <Button type="submit" className="rounded-xl gradient-primary text-primary-foreground gap-2 h-11 w-full" disabled={slugTaken}>
+              <Button type="submit" className="rounded-xl bg-primary text-primary-foreground gap-2 h-11 w-full" disabled={slugTaken}>
                 {saved && <Check className="h-4 w-4" />} {saved ? "Saved!" : "Save Changes"}
               </Button>
             </form>
@@ -176,3 +176,5 @@ const ProviderProfilePage = () => {
 };
 
 export default ProviderProfilePage;
+
+

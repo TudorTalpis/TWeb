@@ -69,7 +69,7 @@ const ProviderServices = () => {
                   <Input type="number" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} className="rounded-xl" />
                 </div>
               </div>
-              <Button onClick={handleSave} className="rounded-xl gradient-primary text-primary-foreground h-9 text-xs">{editing ? "Update Service" : "Add Service"}</Button>
+              <Button onClick={handleSave} className="rounded-xl bg-primary text-primary-foreground h-9 text-xs">{editing ? "Update Service" : "Add Service"}</Button>
             </div>
           </div>
         )}
@@ -102,3 +102,4 @@ const ProviderServices = () => {
 };
 
 export default ProviderServices;
+

@@ -157,7 +157,7 @@ const AdminProviderDetail = () => {
                 {editingProfile ? (
                     <div className="space-y-4 max-w-lg">
                       {/* Avatar & Cover upload */}
-                      <div className="relative rounded-xl overflow-hidden border h-28 bg-gradient-to-br from-primary/10 to-accent/10 group cursor-pointer"
+                      <div className="relative rounded-xl overflow-hidden border h-28 bg-secondary group cursor-pointer"
                            onClick={() => coverInputRef.current?.click()}
                       >
                         {profileForm.coverPhoto ? (
@@ -250,7 +250,7 @@ const AdminProviderDetail = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h2 className="font-display text-xl font-bold">{provider.name}</h2>
                         {provider.featured && <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">Featured</Badge>}
-                        {provider.sponsored && <Badge className="gradient-accent text-accent-foreground border-0 text-[10px]">Sponsored</Badge>}
+                        {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 text-[10px]">Sponsored</Badge>}
                         {provider.blocked && <Badge variant="destructive" className="text-[10px]">Blocked</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{provider.description}</p>
@@ -451,3 +451,5 @@ function ServiceForm({
 }
 
 export default AdminProviderDetail;
+
+

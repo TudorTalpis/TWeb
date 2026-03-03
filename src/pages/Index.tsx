@@ -16,13 +16,7 @@ const Index = () => {
   return (
       <div className="animate-fade-in">
         {/* Hero */}
-        <section className="relative overflow-hidden px-4 py-20 sm:py-32">
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background/60" />
-          <div className="absolute inset-0 bg-radial-glow opacity-80" />
-          <div className="absolute inset-0 bg-grid opacity-60" />
-          <div className="absolute top-20 left-1/4 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-10 right-1/4 h-48 w-48 rounded-full bg-accent/8 blur-3xl pointer-events-none" />
-
+        <section className="relative overflow-hidden border-b border-border/50 px-4 py-20 sm:py-28">
           <div className="relative mx-auto max-w-4xl text-center">
 
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-6xl leading-[1.1]">
@@ -37,7 +31,7 @@ const Index = () => {
 
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link to="/categories">
-                <Button size="lg" className="gap-2 rounded-xl gradient-primary text-white h-12 px-8 text-sm font-semibold btn-glow shadow-glow transition-all hover:scale-105">
+                <Button size="lg" className="h-12 gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-white">
                   <SearchIcon className="h-4 w-4" /> {t("home.browseServices")}
                 </Button>
               </Link>
@@ -66,7 +60,7 @@ const Index = () => {
         </section>
 
         {/* Stats bar */}
-        <div className="relative z-10 border-y border-border/50 bg-card/40 backdrop-blur-sm">
+        <div className="relative z-10 border-y border-border/50 bg-card">
           <div className="mx-auto max-w-6xl px-4 py-5">
             <div className="grid grid-cols-3 divide-x divide-border/50 text-center">
               {[
@@ -127,14 +121,12 @@ const Index = () => {
         {/* CTA Banner */}
         {!hasRole(["PROVIDER", "ADMIN"]) && (
             <section className="mx-auto max-w-6xl px-4 pb-16">
-              <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/5 p-8 sm:p-12 text-center shadow-elevated">
-                <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-primary/50 to-transparent pointer-events-none" />
+              <div className="rounded-2xl border border-border/70 bg-card p-8 text-center shadow-card sm:p-12">
                 <Star className="h-8 w-8 text-primary mx-auto mb-4 relative" />
                 <h2 className="relative font-display text-2xl font-bold sm:text-3xl mb-3">{t("home.cta.title")}</h2>
                 <p className="relative text-muted-foreground text-sm mb-6 max-w-md mx-auto">{t("home.cta.desc")}</p>
                 <Link to="/become-provider">
-                  <Button className="rounded-xl gradient-primary text-white px-8 h-11 font-semibold btn-glow shadow-glow transition-all hover:scale-105">
+                  <Button className="h-11 rounded-xl bg-primary px-8 font-semibold text-white">
                     {t("home.becomeProvider")} <ArrowRight className="h-4 w-4 ml-1" />
                   </Button>
                 </Link>

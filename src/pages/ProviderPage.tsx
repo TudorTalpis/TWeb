@@ -35,15 +35,11 @@ const ProviderPage = () => {
           {provider.coverPhoto ? (
               <div className="h-60 sm:h-80 overflow-hidden">
                 <img src={provider.coverPhoto} alt="Cover" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                <div className="absolute inset-0 bg-black/30" />
               </div>
           ) : (
-              <div className="h-60 sm:h-80 bg-gradient-to-br from-background via-card to-secondary relative overflow-hidden">
-                <div className="absolute inset-0 bg-grid opacity-40" />
-                <div className="absolute inset-0 bg-radial-glow opacity-60" />
-                <div className="absolute top-10 left-1/4 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-                <div className="absolute bottom-5 right-1/3 h-32 w-32 rounded-full bg-accent/8 blur-3xl" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+              <div className="h-60 sm:h-80 bg-secondary relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/25" />
               </div>
           )}
 
@@ -64,7 +60,7 @@ const ProviderPage = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{provider.name}</h1>
-                    {provider.sponsored && <Badge className="gradient-accent text-accent-foreground border-0 rounded-full px-2.5 shadow-glow-accent text-xs">Sponsored</Badge>}
+                    {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-2.5 text-xs">Sponsored</Badge>}
                     {provider.featured && <Badge className="bg-primary/10 text-primary border border-primary/30 rounded-full px-2.5 text-xs">Featured</Badge>}
                   </div>
                   <p className="mt-2 text-muted-foreground text-sm leading-relaxed max-w-xl">{provider.description}</p>
@@ -113,7 +109,7 @@ const ProviderPage = () => {
                       </div>
                       {(hasRole(["USER", "PROVIDER"]) || state.session.role === "GUEST") && (
                           <Link to={`/book/${provider.id}/${svc.id}`} className="ml-4">
-                            <Button size="sm" className="rounded-xl gradient-primary text-white h-9 px-4 text-xs font-semibold btn-glow shadow-glow transition-all hover:scale-105">
+                            <Button size="sm" className="rounded-xl bg-primary text-white h-9 px-4 text-xs font-semibold">
                               <Zap className="h-3 w-3 mr-1" />Book
                             </Button>
                           </Link>
@@ -213,3 +209,5 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
 }
 
 export default ProviderPage;
+
+

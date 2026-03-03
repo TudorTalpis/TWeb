@@ -311,7 +311,7 @@ const BookService = () => {
                   </div>
                   <Button
                       onClick={() => setShowConfirmModal(true)}
-                      className="w-full rounded-xl gradient-primary text-primary-foreground h-11 text-sm font-medium"
+                      className="w-full rounded-xl bg-primary text-primary-foreground h-11 text-sm font-medium"
                   >
                     {t("book.reviewConfirm")}
                   </Button>
@@ -383,7 +383,7 @@ const BookService = () => {
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="ghost" onClick={() => setShowConfirmModal(false)} className="rounded-xl">{t("book.cancel")}</Button>
-              <Button onClick={handleConfirm} className="rounded-xl gradient-primary text-primary-foreground">{t("book.confirm")}</Button>
+              <Button onClick={handleConfirm} className="rounded-xl bg-primary text-primary-foreground">{t("book.confirm")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -405,3 +405,4 @@ function DetailRow({ label, value, link }: { label: string; value: string; link?
 }
 
 export default BookService;
+
