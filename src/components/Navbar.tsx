@@ -81,10 +81,10 @@ export function Navbar() {
                 <NavItem to="/dashboard" label={t("nav.bookings")} active={isActive("/dashboard")} />
             )}
             {hasRole(["PROVIDER"]) && (
-                <NavItem to="/provider/bookings" label={t("nav.provider")} active={isActivePrefix("/provider")} />
+                <NavItem to="/provider/dashboard" label="Panel" active={isActivePrefix("/provider")} />
             )}
             {hasRole(["ADMIN"]) && (
-                <NavItem to="/admin/dashboard" label={t("nav.admin")} active={isActivePrefix("/admin")} />
+                <NavItem to="/admin/dashboard" label="Panel" active={isActivePrefix("/admin")} />
             )}
           </div>
 
@@ -244,10 +244,10 @@ export function Navbar() {
                     <MobileNavItem to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.myBookings")} onClick={() => setMenuOpen(false)} />
                 )}
                 {hasRole(["PROVIDER"]) && (
-                    <MobileNavItem to="/provider/bookings" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.providerPanel")} onClick={() => setMenuOpen(false)} />
+                    <MobileNavItem to="/provider/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Panel" onClick={() => setMenuOpen(false)} />
                 )}
                 {hasRole(["ADMIN"]) && (
-                    <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.adminPanel")} onClick={() => setMenuOpen(false)} />
+                    <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Panel" onClick={() => setMenuOpen(false)} />
                 )}
                 {currentUser && (
                     <MobileNavItem to="/settings" icon={<Settings className="h-4 w-4" />} label={t("nav.settings")} onClick={() => setMenuOpen(false)} />

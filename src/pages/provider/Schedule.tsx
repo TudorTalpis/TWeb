@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { format, addDays, startOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,14 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Apple Calendar-like pastel colors with matching left-border accents
+// Pastel palette inspired by classic scheduler boards
 const BOOKING_COLORS = [
-  { bg: "#E8F5E9", border: "#43A047", text: "#1B5E20" },
-  { bg: "#E3F2FD", border: "#1E88E5", text: "#0D47A1" },
-  { bg: "#FFF3E0", border: "#FB8C00", text: "#E65100" },
-  { bg: "#F3E5F5", border: "#AB47BC", text: "#4A148C" },
-  { bg: "#FCE4EC", border: "#EC407A", text: "#880E4F" },
-  { bg: "#E0F7FA", border: "#00ACC1", text: "#006064" },
-  { bg: "#FFF8E1", border: "#FFB300", text: "#FF6F00" },
+  { bg: "#9ECFEA", border: "#9ECFEA", text: "#11364B" },
+  { bg: "#F3BE63", border: "#F3BE63", text: "#4A3310" },
+  { bg: "#EB97B7", border: "#EB97B7", text: "#4A1A30" },
+  { bg: "#6FCBC2", border: "#6FCBC2", text: "#103B36" },
+  { bg: "#A5D8F0", border: "#A5D8F0", text: "#12394A" },
+  { bg: "#F1C778", border: "#F1C778", text: "#4A3610" },
 ];
 
 function getBookingColor(index: number) {
@@ -192,7 +191,7 @@ const ProviderSchedule = () => {
           </div>
 
           {/* Calendar View — fills remaining space */}
-          <div className="rounded-2xl border bg-card shadow-card provider-calendar overflow-hidden flex-1 min-h-0">
+          <div className="rounded-xl border bg-card shadow-card provider-calendar overflow-hidden flex-1 min-h-0">
             <FullCalendar
                 ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
@@ -200,9 +199,9 @@ const ProviderSchedule = () => {
                 headerToolbar={isMobile ? {
                   left: "prev,next",
                   center: "title",
-                  right: "today",
+                  right: "",
                 } : {
-                  left: "today prev,next",
+                  left: "prev,next",
                   center: "title",
                   right: "timeGridWeek,timeGridDay",
                 }}
@@ -214,10 +213,11 @@ const ProviderSchedule = () => {
                 } : undefined}
                 events={allEvents}
                 eventClick={handleEventClick}
-                slotMinTime="07:00:00"
-                slotMaxTime="21:00:00"
+                slotMinTime="08:00:00"
+                slotMaxTime="19:00:00"
                 allDaySlot={false}
                 slotDuration={isMobile ? "01:00:00" : "00:30:00"}
+                eventTimeFormat={{ hour: "numeric", minute: "2-digit", meridiem: "short" }}
                 height="100%"
                 expandRows
                 nowIndicator
@@ -233,14 +233,11 @@ const ProviderSchedule = () => {
                           role="button"
                           tabIndex={0}
                       >
-                        <p className="text-[10px] font-medium leading-tight opacity-70">
-                          {props.startTime} – {props.endTime}
+                        <p className="text-[11px] font-medium leading-tight">
+                          {props.startTime} - {props.endTime}
                         </p>
-                        <p className="text-[11px] font-semibold leading-tight mt-0.5 truncate">{props.userName}</p>
-                        {props.userPhone && (
-                            <p className="text-[10px] leading-tight truncate opacity-70 mt-0.5">📞 {props.userPhone}</p>
-                        )}
-                        <p className="text-[10px] leading-tight truncate opacity-60 mt-auto">{props.serviceName}</p>
+                        <p className="text-[14px] font-semibold leading-tight mt-1 truncate">{props.userName}</p>
+                        <p className="text-[12px] leading-tight truncate mt-1 opacity-90">{props.serviceName}</p>
                       </div>
                   );
                 }}
@@ -272,7 +269,7 @@ const ProviderSchedule = () => {
                       <p className="text-sm text-muted-foreground">Time</p>
                       <p className="font-semibold flex items-center gap-2">
                         <Clock className="h-4 w-4" />
-                        {selectedBooking.date} · {selectedBooking.startTime} – {selectedBooking.endTime}
+                        {selectedBooking.date} · {selectedBooking.startTime} - {selectedBooking.endTime}
                       </p>
                     </div>
                   </div>
@@ -336,7 +333,7 @@ const ProviderSchedule = () => {
                         <SelectContent className="bg-card border shadow-floating z-50">
                           {providerServices.map((s) => (
                               <SelectItem key={s.id} value={s.id}>
-                                {s.title} ({s.duration} min – {s.price} lei)
+                                {s.title} ({s.duration} min - {s.price} lei)
                               </SelectItem>
                           ))}
                         </SelectContent>
@@ -467,3 +464,5 @@ const ProviderSchedule = () => {
 };
 
 export default ProviderSchedule;
+
+

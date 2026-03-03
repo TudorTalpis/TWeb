@@ -16,6 +16,53 @@ const CHART_COLORS = [
   "hsl(var(--info, 210 80% 60%))",
 ];
 
+const MAX_AXIS_LINE = 14;
+
+function splitAxisLabel(label: string): string[] {
+  const words = label.split(" ");
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    if (word.length > MAX_AXIS_LINE) {
+      if (current) {
+        lines.push(current);
+        current = "";
+      }
+      const chunks = word.match(new RegExp(`.{1,${MAX_AXIS_LINE}}`, "g")) ?? [word];
+      lines.push(...chunks);
+      continue;
+    }
+
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= MAX_AXIS_LINE) {
+      current = candidate;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines;
+}
+
+function WrappedAxisTick(props: any) {
+  const { x, y, payload } = props;
+  const lines = splitAxisLabel(String(payload?.value ?? ""));
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11}>
+        {lines.map((line, i) => (
+          <tspan key={i} x={0} dy={i === 0 ? 12 : 12}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  );
+}
+
 const ProviderDashboard = () => {
   const { state, currentProvider } = useAppStore();
   if (!currentProvider) return null;
@@ -73,7 +120,7 @@ const ProviderDashboard = () => {
 
   // Bar chart: revenue per service
   const revenuePerService = services.map((s) => ({
-    name: s.title.length > 12 ? s.title.slice(0, 12) + "…" : s.title,
+    name: s.title,
     revenue: completedBookings
       .filter((b) => b.serviceId === s.id)
       .reduce((sum) => sum + s.price, 0),
@@ -187,7 +234,7 @@ const ProviderDashboard = () => {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={revenuePerService}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="name" interval={0} height={56} tick={<WrappedAxisTick />} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
