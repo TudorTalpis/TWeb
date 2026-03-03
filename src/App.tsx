@@ -31,6 +31,10 @@ import AdminProviderDetail from "./pages/admin/ProviderDetail";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
 import SignUp from "./pages/SignUp";
+import Unauthorized401 from "./pages/Unauthorized401";
+import Forbidden403 from "./pages/Forbidden403";
+import InternalServerError500 from "./pages/InternalServerError500";
+import SimulateServerError from "./pages/SimulateServerError";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +54,10 @@ const App = () => (
                     <Route path="/providers/:providerSlug" element={<ProviderPage />} />
                     <Route path="/auth/login" element={<Login />} />
                     <Route path="/auth/signup" element={<SignUp />} />
+                    <Route path="/error/401" element={<Unauthorized401 />} />
+                    <Route path="/error/403" element={<Forbidden403 />} />
+                    <Route path="/error/500" element={<InternalServerError500 />} />
+                    <Route path="/simulate/500" element={<SimulateServerError />} />
                     <Route path="/become-provider" element={<BecomeProvider />} />
                     <Route path="/notifications" element={
                       <RouteGuard roles={["USER", "PROVIDER", "ADMIN"]}><Notifications /></RouteGuard>
