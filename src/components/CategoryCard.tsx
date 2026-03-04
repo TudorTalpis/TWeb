@@ -13,10 +13,7 @@ export function CategoryCard({ category }: { category: Category }) {
           to={`/categories?cat=${category.id}`}
           className="group flex flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-5 shadow-card card-hover relative overflow-hidden"
       >
-        {/* Subtle glow background on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl" />
-
-        <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-border/60 bg-secondary text-muted-foreground transition-all duration-300 group-hover:gradient-primary group-hover:border-transparent group-hover:text-white group-hover:shadow-glow group-hover:scale-110">
+        <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-border/60 bg-secondary text-muted-foreground transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10 group-hover:text-primary">
           <Icon className="h-5 w-5" />
         </div>
         <div className="relative text-center">

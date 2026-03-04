@@ -29,7 +29,7 @@ function Hero() {
         </div>
 
         <div className="relative">
-          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-md bg-gradient-to-tr from-slate-50 to-white">
+          <div className="aspect-video w-full rounded-2xl overflow-hidden shadow-md bg-card">
             <img
               src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1400&auto=format&fit=crop"
               alt="Local businesses on a map and customers browsing listings"
@@ -287,3 +287,4 @@ export default function AboutPage(): JSX.Element {
     </main>
   );
 }
+

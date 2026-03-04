@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Trash2, Plus, Star, Ban, Award, Megaphone, Edit2, X, Upload, ImagePlus, Camera } from "lucide-react";
 import { generateId } from "@/lib/storage";
+import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { toast } from "@/hooks/use-toast";
 import { fileToBase64 } from "@/lib/fileToBase64";
 import type { Service } from "@/types";
@@ -99,6 +100,7 @@ const AdminProviderDetail = () => {
       description: "",
       price: 0,
       duration: 60,
+      bufferMinutes: null,
       categoryId: provider.categoryId,
       providerId: provider.id,
     });
@@ -115,6 +117,7 @@ const AdminProviderDetail = () => {
           description: serviceForm.description || "",
           price: serviceForm.price || 0,
           duration: serviceForm.duration || 60,
+          bufferMinutes: serviceForm.bufferMinutes ?? null,
           categoryId: serviceForm.categoryId || provider.categoryId,
         },
       });
@@ -157,7 +160,7 @@ const AdminProviderDetail = () => {
                 {editingProfile ? (
                     <div className="space-y-4 max-w-lg">
                       {/* Avatar & Cover upload */}
-                      <div className="relative rounded-xl overflow-hidden border h-28 bg-gradient-to-br from-primary/10 to-accent/10 group cursor-pointer"
+                      <div className="relative rounded-xl overflow-hidden border h-28 bg-secondary group cursor-pointer"
                            onClick={() => coverInputRef.current?.click()}
                       >
                         {profileForm.coverPhoto ? (
@@ -250,7 +253,7 @@ const AdminProviderDetail = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h2 className="font-display text-xl font-bold">{provider.name}</h2>
                         {provider.featured && <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">Featured</Badge>}
-                        {provider.sponsored && <Badge className="gradient-accent text-accent-foreground border-0 text-[10px]">Sponsored</Badge>}
+                        {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 text-[10px]">Sponsored</Badge>}
                         {provider.blocked && <Badge variant="destructive" className="text-[10px]">Blocked</Badge>}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{provider.description}</p>
@@ -331,7 +334,9 @@ const AdminProviderDetail = () => {
                         <div>
                           <p className="text-sm font-medium">{svc.title}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{svc.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">${svc.price} · {svc.duration}min</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            ${svc.price} · {svc.duration}min + {getEffectiveServiceBufferMinutes(svc, provider)}min buffer
+                          </p>
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEditService(svc)}>
@@ -373,9 +378,9 @@ const AdminProviderDetail = () => {
                       return (
                           <tr key={b.id} className="text-xs">
                             <td className="py-2.5">{b.userName}</td>
-                            <td className="py-2.5">{svc?.title ?? "—"}</td>
+                            <td className="py-2.5">{svc?.title ?? "â€”"}</td>
                             <td className="py-2.5">{b.date}</td>
-                            <td className="py-2.5">{b.startTime}–{b.endTime}</td>
+                            <td className="py-2.5">{b.startTime}â€“{b.endTime}</td>
                             <td className="py-2.5">
                           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
                               b.status === "COMPLETED" ? "bg-success/15 text-success" :
@@ -442,6 +447,14 @@ function ServiceForm({
           <Input type="number" value={form.price ?? 0} onChange={(e) => setForm({ ...form, price: +e.target.value })} placeholder="Price ($)" />
           <Input type="number" value={form.duration ?? 60} onChange={(e) => setForm({ ...form, duration: +e.target.value })} placeholder="Duration (min)" />
         </div>
+        <Input
+          type="number"
+          min={0}
+          step={5}
+          value={form.bufferMinutes ?? ""}
+          onChange={(e) => setForm({ ...form, bufferMinutes: e.target.value === "" ? null : +e.target.value })}
+          placeholder="Custom buffer (min) - empty = provider default"
+        />
         <div className="flex gap-2">
           <Button size="sm" onClick={onSave} className="gap-1"><Save className="h-3.5 w-3.5" /> Save</Button>
           <Button size="sm" variant="ghost" onClick={onCancel}><X className="h-3.5 w-3.5 mr-1" /> Cancel</Button>
@@ -451,3 +464,6 @@ function ServiceForm({
 }
 
 export default AdminProviderDetail;
+
+
+

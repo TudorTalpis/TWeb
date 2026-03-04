@@ -52,7 +52,6 @@ const AdminDashboard = () => {
       label: "Total Providers",
       value: totalProviders,
       icon: Users,
-      gradient: "from-primary/15 to-primary/5",
       iconBg: "bg-primary/20 text-primary",
       trend: `${providers.length} active`,
     },
@@ -60,7 +59,6 @@ const AdminDashboard = () => {
       label: "Total Services",
       value: totalServices,
       icon: Briefcase,
-      gradient: "from-accent/15 to-accent/5",
       iconBg: "bg-accent/20 text-accent",
       trend: `${(totalServices / Math.max(totalProviders, 1)).toFixed(1)} avg/provider`,
     },
@@ -68,7 +66,6 @@ const AdminDashboard = () => {
       label: "Total Clients",
       value: totalClients,
       icon: UserCheck,
-      gradient: "from-warning/15 to-warning/5",
       iconBg: "bg-warning/20 text-warning",
       trend: `${totalBookings} bookings`,
     },
@@ -76,7 +73,6 @@ const AdminDashboard = () => {
       label: "Total Revenue",
       value: `$${totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      gradient: "from-success/15 to-success/5",
       iconBg: "bg-success/20 text-success",
       trend: `${state.bookings.filter((b) => b.status === "COMPLETED").length} completed`,
     },
@@ -96,7 +92,7 @@ const AdminDashboard = () => {
           {stats.map((s) => (
             <div
               key={s.label}
-              className={`rounded-2xl border bg-gradient-to-br ${s.gradient} p-5 shadow-card transition-all hover:shadow-elevated`}
+              className={`rounded-2xl border bg-card p-5 shadow-card transition-all hover:shadow-elevated`}
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.iconBg}`}>
@@ -217,3 +213,5 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+

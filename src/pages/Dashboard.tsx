@@ -77,7 +77,6 @@ const Dashboard = () => {
       label: "Total Bookings",
       value: bookings.length,
       icon: CalendarCheck,
-      gradient: "from-primary/15 to-primary/5",
       iconBg: "bg-primary/20 text-primary",
       trend: `${pending.length} pending · ${upcoming.length} upcoming`,
     },
@@ -85,7 +84,6 @@ const Dashboard = () => {
       label: "Total Spent",
       value: `$${totalSpent.toLocaleString()}`,
       icon: DollarSign,
-      gradient: "from-success/15 to-success/5",
       iconBg: "bg-success/20 text-success",
       trend: `${completed.length} completed`,
     },
@@ -93,7 +91,6 @@ const Dashboard = () => {
       label: "Providers Visited",
       value: uniqueProviders,
       icon: Users,
-      gradient: "from-accent/15 to-accent/5",
       iconBg: "bg-accent/20 text-accent",
       trend: `${reviewsGiven} reviews`,
     },
@@ -101,7 +98,6 @@ const Dashboard = () => {
       label: "Services Used",
       value: new Set(bookings.map((b) => b.serviceId)).size,
       icon: Briefcase,
-      gradient: "from-warning/15 to-warning/5",
       iconBg: "bg-warning/20 text-warning",
       trend: `$${completed.length > 0 ? Math.round(totalSpent / completed.length) : 0} avg`,
     },
@@ -146,7 +142,7 @@ const Dashboard = () => {
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`rounded-2xl border bg-gradient-to-br ${s.gradient} p-4 shadow-card transition-all hover:shadow-elevated`}
+            className={`rounded-2xl border bg-card p-4 shadow-card transition-all hover:shadow-elevated`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.iconBg}`}>
@@ -279,11 +275,21 @@ const Dashboard = () => {
                     {prov && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{prov.location}</span>}
                   </div>
                   <div className="mt-3 pt-3 border-t">
-                    <Link to={`/providers/${b.providerId}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
-                        {t("dashboard.viewProvider")}
+                    <div className="flex items-center gap-2">
+                      <Link to={`/providers/${b.providerId}`}>
+                        <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
+                          {t("dashboard.viewProvider")}
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => dispatch({ type: "UPDATE_BOOKING", payload: { id: b.id, status: "CANCELLED" } })}
+                        className="h-7 text-[10px] rounded-full gap-1 px-3 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50 hover:bg-destructive/5"
+                      >
+                        Cancel
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
               );
@@ -365,7 +371,7 @@ const Dashboard = () => {
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="ghost" onClick={() => setReviewModal(null)} className="rounded-xl">{t("book.cancel")}</Button>
-            <Button onClick={() => handleSubmitReview(reviewModal!)} className="rounded-xl gradient-primary text-primary-foreground">{t("review.submit")}</Button>
+            <Button onClick={() => handleSubmitReview(reviewModal!)} className="rounded-xl bg-primary text-primary-foreground">{t("review.submit")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -374,3 +380,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
+

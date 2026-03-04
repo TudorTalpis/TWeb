@@ -16,6 +16,14 @@ function minutesToTime(m: number): string {
   return `${h.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
 }
 
+function bookingBlocksSlot(slotStart: number, slotEnd: number, booking: Booking): boolean {
+  if (booking.status === "CANCELLED") return false;
+  const bookingStart = timeToMinutes(booking.startTime);
+  const bookingEnd = timeToMinutes(booking.endTime);
+  const occupiedEnd = Math.max(bookingEnd, bookingStart + 60);
+  return slotStart < occupiedEnd && slotEnd > bookingStart;
+}
+
 export function getDayOfWeek(dateStr: string): number {
   return new Date(dateStr + "T00:00:00").getDay();
 }
@@ -24,15 +32,14 @@ export function generateSlots(
   date: string,
   availability: Availability[],
   bookings: Booking[],
-  timeoffs: TimeOff[]
+  timeoffs: TimeOff[],
+  requiredMinutes?: number
 ): TimeSlot[] {
   const dow = getDayOfWeek(date);
   const dayAvail = availability.filter((a) => a.weekday === dow);
   if (dayAvail.length === 0) return [];
 
-  const dayBookings = bookings.filter(
-    (b) => b.date === date && b.status === "CONFIRMED"
-  );
+  const dayBookings = bookings.filter((b) => b.date === date && b.status !== "CANCELLED");
   const dayTimeoffs = timeoffs.filter((t) => t.date === date);
 
   const slots: TimeSlot[] = [];
@@ -40,25 +47,22 @@ export function generateSlots(
   for (const avail of dayAvail) {
     const start = timeToMinutes(avail.startTime);
     const end = timeToMinutes(avail.endTime);
+    const slotSize = Math.max(5, requiredMinutes ?? avail.slotMinutes);
     const step = avail.slotMinutes + avail.bufferMinutes;
 
-    for (let t = start; t + avail.slotMinutes <= end; t += step) {
+    for (let t = start; t + slotSize <= end; t += step) {
       const slotStart = minutesToTime(t);
-      const slotEnd = minutesToTime(t + avail.slotMinutes);
+      const slotEnd = minutesToTime(t + slotSize);
 
       // Check booking overlap
-      const booked = dayBookings.some((b) => {
-        const bs = timeToMinutes(b.startTime);
-        const be = timeToMinutes(b.endTime);
-        return t < be && t + avail.slotMinutes > bs;
-      });
+      const booked = dayBookings.some((b) => bookingBlocksSlot(t, t + slotSize, b));
       if (booked) continue;
 
       // Check time-off overlap
       const offed = dayTimeoffs.some((to) => {
         const ts = timeToMinutes(to.startTime);
         const te = timeToMinutes(to.endTime);
-        return t < te && t + avail.slotMinutes > ts;
+        return t < te && t + slotSize > ts;
       });
       if (offed) continue;
 
@@ -67,6 +71,23 @@ export function generateSlots(
   }
 
   return slots;
+}
+
+export function isHourOccupied(
+  providerId: string,
+  date: string,
+  startTime: string,
+  endTime: string,
+  bookings: Booking[],
+  excludeBookingId?: string
+): boolean {
+  const slotStart = timeToMinutes(startTime);
+  const slotEnd = Math.max(timeToMinutes(endTime), slotStart + 60);
+  return bookings.some((b) => {
+    if (b.providerId !== providerId || b.date !== date) return false;
+    if (excludeBookingId && b.id === excludeBookingId) return false;
+    return bookingBlocksSlot(slotStart, slotEnd, b);
+  });
 }
 
 export function getNext14Days(): string[] {

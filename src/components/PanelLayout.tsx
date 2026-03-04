@@ -58,7 +58,7 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
           {!mobileOpen && (
               <button
                   onClick={() => setMobileOpen(true)}
-                  className="fixed bottom-5 left-4 z-40 h-11 w-11 rounded-2xl gradient-primary text-white shadow-glow flex items-center justify-center transition-all hover:scale-110 btn-glow"
+                  className="fixed bottom-5 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -124,3 +124,4 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
       </div>
   );
 }
+

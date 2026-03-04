@@ -16,7 +16,7 @@ const SettingsPage = () => {
   const [name, setName] = useState(currentUser?.name ?? "");
   const [email, setEmail] = useState(currentUser?.email ?? "");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(currentUser?.phone ?? "");
 
   if (!currentUser) {
     return (
@@ -122,7 +122,7 @@ const SettingsPage = () => {
       </div>
 
       {/* Become Provider section */}
-      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 to-primary/10 p-6">
+      <div className="rounded-2xl border bg-card p-6">
         <h2 className="font-semibold text-sm flex items-center gap-2 mb-4">
           <Briefcase className="h-4 w-4 text-primary" /> {t("settings.becomeProvider")}
         </h2>
@@ -141,3 +141,4 @@ const SettingsPage = () => {
 };
 
 export default SettingsPage;
+

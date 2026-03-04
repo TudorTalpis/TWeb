@@ -16,6 +16,53 @@ const CHART_COLORS = [
   "hsl(var(--info, 210 80% 60%))",
 ];
 
+const MAX_AXIS_LINE = 14;
+
+function splitAxisLabel(label: string): string[] {
+  const words = label.split(" ");
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    if (word.length > MAX_AXIS_LINE) {
+      if (current) {
+        lines.push(current);
+        current = "";
+      }
+      const chunks = word.match(new RegExp(`.{1,${MAX_AXIS_LINE}}`, "g")) ?? [word];
+      lines.push(...chunks);
+      continue;
+    }
+
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= MAX_AXIS_LINE) {
+      current = candidate;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines;
+}
+
+function WrappedAxisTick(props: any) {
+  const { x, y, payload } = props;
+  const lines = splitAxisLabel(String(payload?.value ?? ""));
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize={11}>
+        {lines.map((line, i) => (
+          <tspan key={i} x={0} dy={i === 0 ? 12 : 12}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    </g>
+  );
+}
+
 const ProviderDashboard = () => {
   const { state, currentProvider } = useAppStore();
   if (!currentProvider) return null;
@@ -39,7 +86,6 @@ const ProviderDashboard = () => {
       label: "Total Clients",
       value: uniqueClients,
       icon: Users,
-      gradient: "from-primary/15 to-primary/5",
       iconBg: "bg-primary/20 text-primary",
       trend: `${confirmedBookings.length} upcoming`,
     },
@@ -47,7 +93,6 @@ const ProviderDashboard = () => {
       label: "Revenue",
       value: `$${totalRevenue.toLocaleString()}`,
       icon: DollarSign,
-      gradient: "from-success/15 to-success/5",
       iconBg: "bg-success/20 text-success",
       trend: `${completedBookings.length} completed`,
     },
@@ -55,7 +100,6 @@ const ProviderDashboard = () => {
       label: "Services",
       value: services.length,
       icon: Briefcase,
-      gradient: "from-accent/15 to-accent/5",
       iconBg: "bg-accent/20 text-accent",
       trend: `${bookings.length} total bookings`,
     },
@@ -63,7 +107,6 @@ const ProviderDashboard = () => {
       label: "Completed",
       value: completedBookings.length,
       icon: CheckCircle,
-      gradient: "from-warning/15 to-warning/5",
       iconBg: "bg-warning/20 text-warning",
       trend: `${((completedBookings.length / Math.max(bookings.length, 1)) * 100).toFixed(0)}% rate`,
     },
@@ -77,7 +120,7 @@ const ProviderDashboard = () => {
 
   // Bar chart: revenue per service
   const revenuePerService = services.map((s) => ({
-    name: s.title.length > 12 ? s.title.slice(0, 12) + "…" : s.title,
+    name: s.title,
     revenue: completedBookings
       .filter((b) => b.serviceId === s.id)
       .reduce((sum) => sum + s.price, 0),
@@ -111,7 +154,7 @@ const ProviderDashboard = () => {
           {stats.map((s) => (
             <div
               key={s.label}
-              className={`rounded-2xl border bg-gradient-to-br ${s.gradient} p-4 shadow-card transition-all hover:shadow-elevated`}
+              className={`rounded-2xl border bg-card p-4 shadow-card transition-all hover:shadow-elevated`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.iconBg}`}>
@@ -191,7 +234,7 @@ const ProviderDashboard = () => {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={revenuePerService}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="name" interval={0} height={56} tick={<WrappedAxisTick />} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
@@ -245,3 +288,5 @@ const ProviderDashboard = () => {
 };
 
 export default ProviderDashboard;
+
+

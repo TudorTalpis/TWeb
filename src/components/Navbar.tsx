@@ -61,11 +61,11 @@ export function Navbar() {
   const currentLangCode = lang.toUpperCase();
 
   return (
-      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-border/60 bg-background/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl gradient-primary shadow-glow transition-all duration-300 group-hover:shadow-[0_0_24px_hsl(249_89%_68%/0.45)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary">
               <Zap className="h-4 w-4 text-white" />
             </div>
             <span className="hidden sm:inline font-display text-lg font-bold text-foreground tracking-tight">
@@ -81,10 +81,10 @@ export function Navbar() {
                 <NavItem to="/dashboard" label={t("nav.bookings")} active={isActive("/dashboard")} />
             )}
             {hasRole(["PROVIDER"]) && (
-                <NavItem to="/provider/bookings" label={t("nav.provider")} active={isActivePrefix("/provider")} />
+                <NavItem to="/provider/dashboard" label="Panel" active={isActivePrefix("/provider")} />
             )}
             {hasRole(["ADMIN"]) && (
-                <NavItem to="/admin/dashboard" label={t("nav.admin")} active={isActivePrefix("/admin")} />
+                <NavItem to="/admin/dashboard" label="Panel" active={isActivePrefix("/admin")} />
             )}
           </div>
 
@@ -140,7 +140,7 @@ export function Navbar() {
                   >
                     <Bell className="h-[17px] w-[17px]" />
                     {unreadCount > 0 && (
-                        <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-white shadow-glow ring-2 ring-background animate-glow-pulse">
+                        <span className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-white ring-2 ring-background">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                     )}
@@ -152,7 +152,7 @@ export function Navbar() {
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                         className="flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/40 py-1.5 pl-1.5 pr-3 text-sm transition-all hover:bg-secondary hover:border-border hover:shadow-card"
                     >
-                      <div className="flex h-6 w-6 items-center justify-center rounded-lg gradient-primary text-[10px] font-bold text-white shadow-sm">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
                         {currentUser.name[0]}
                       </div>
                       <span className="text-sm font-medium text-foreground max-w-[90px] truncate">{currentUser.name.split(" ")[0]}</span>
@@ -160,7 +160,7 @@ export function Navbar() {
                     </button>
 
                     {userMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-58 rounded-2xl border border-border/60 bg-card p-1.5 shadow-floating animate-scale-in z-50">
+                        <div className="absolute right-0 top-full mt-2 w-58 rounded-2xl border border-border/60 bg-card p-1.5 shadow-card z-50">
                           <div className="px-3 py-2.5 border-b border-border/50 mb-1.5">
                             <p className="text-sm font-semibold text-foreground">{currentUser.name}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">{currentUser.email}</p>
@@ -182,7 +182,7 @@ export function Navbar() {
                           </button>
                           <div className="border-t border-border/50 mt-1 pt-1">
                             <button
-                                onClick={() => { dispatch({ type: "LOGOUT" }); setUserMenuOpen(false); }}
+                                onClick={() => { dispatch({ type: "LOGOUT" }); setUserMenuOpen(false); navigate("/auth/login", { replace: true }); }}
                                 className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
                             >
                               <LogOut className="h-4 w-4" /> {t("nav.signOut")}
@@ -205,7 +205,7 @@ export function Navbar() {
                     <RotateCcw className="h-3.5 w-3.5 mr-1" /> {t("nav.reset")}
                   </Button>
                   <Link to="/auth/login">
-                    <Button size="sm" className="h-8 rounded-xl gradient-primary text-white px-4 text-xs font-semibold btn-glow transition-all">
+                    <Button size="sm" className="h-8 rounded-xl bg-primary text-white px-4 text-xs font-semibold">
                       {t("nav.signIn")}
                     </Button>
                   </Link>
@@ -224,7 +224,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-            <div className="border-t border-border/50 bg-card/95 backdrop-blur-xl px-4 py-3 lg:hidden animate-fade-in">
+            <div className="border-t border-border/50 bg-card px-4 py-3 lg:hidden animate-fade-in">
               {/* Mobile search */}
               <form onSubmit={handleSearch} className="mb-3 md:hidden">
                 <div className="relative">
@@ -244,10 +244,10 @@ export function Navbar() {
                     <MobileNavItem to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.myBookings")} onClick={() => setMenuOpen(false)} />
                 )}
                 {hasRole(["PROVIDER"]) && (
-                    <MobileNavItem to="/provider/bookings" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.providerPanel")} onClick={() => setMenuOpen(false)} />
+                    <MobileNavItem to="/provider/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Panel" onClick={() => setMenuOpen(false)} />
                 )}
                 {hasRole(["ADMIN"]) && (
-                    <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.adminPanel")} onClick={() => setMenuOpen(false)} />
+                    <MobileNavItem to="/admin/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Panel" onClick={() => setMenuOpen(false)} />
                 )}
                 {currentUser && (
                     <MobileNavItem to="/settings" icon={<Settings className="h-4 w-4" />} label={t("nav.settings")} onClick={() => setMenuOpen(false)} />
@@ -256,7 +256,7 @@ export function Navbar() {
                     <>
                       <div className="border-t border-border/50 my-1.5" />
                       <div className="flex items-center gap-2.5 px-3 py-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-xl gradient-primary text-xs font-bold text-white">{currentUser.name[0]}</div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-xs font-bold text-white">{currentUser.name[0]}</div>
                         <div>
                           <p className="text-sm font-semibold">{currentUser.name}</p>
                           <Badge variant="outline" className="text-[10px] capitalize border-primary/30 text-primary">{currentUser.role}</Badge>
@@ -270,7 +270,7 @@ export function Navbar() {
                       </button>
                       <button
                           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                          onClick={() => { dispatch({ type: "LOGOUT" }); setMenuOpen(false); }}
+                          onClick={() => { dispatch({ type: "LOGOUT" }); setMenuOpen(false); navigate("/auth/login", { replace: true }); }}
                       >
                         <LogOut className="h-4 w-4" /> {t("nav.signOut")}
                       </button>
@@ -320,7 +320,7 @@ function UserDropdownItem({ to, icon, label, onClick, badge }: { to: string; ico
       >
         <span className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground">{icon} <span className="text-foreground">{label}</span></span>
         {badge !== undefined && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full gradient-primary px-1.5 text-[10px] font-bold text-white shadow-glow">
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
           {badge}
         </span>
         )}

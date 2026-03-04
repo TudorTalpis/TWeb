@@ -15,6 +15,7 @@ const SignUp = (): JSX.Element => {
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -39,11 +40,14 @@ const SignUp = (): JSX.Element => {
         setError("");
         const trimmedName = name.trim();
         const trimmedEmail = email.trim().toLowerCase();
+        const trimmedPhone = phone.trim();
         if (!trimmedName) { setError(t("auth.error.noFullName")); return; }
         if (trimmedName.length < 2) { setError(t("auth.error.nameTooShort")); return; }
         if (!trimmedEmail) { setError(t("auth.error.noEmail")); return; }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trimmedEmail)) { setError(t("auth.error.invalidEmail")); return; }
+        if (!trimmedPhone) { setError("Please enter your phone number."); return; }
+        if (trimmedPhone.length < 6) { setError("Phone number is too short."); return; }
         const nameTaken = state.users.some((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
         if (nameTaken) { setError(t("auth.error.nameTaken")); return; }
         const emailTaken = state.users.some((u: any) => u.email.toLowerCase() === trimmedEmail);
@@ -55,6 +59,7 @@ const SignUp = (): JSX.Element => {
             id: generateId(),
             name: trimmedName,
             email: trimmedEmail,
+            phone: trimmedPhone,
             password,
             role: "USER" as const,
         };
@@ -66,13 +71,10 @@ const SignUp = (): JSX.Element => {
 
     return (
         <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
-            <div className="absolute inset-0 bg-radial-glow opacity-60 pointer-events-none" />
-            <div className="absolute inset-0 bg-grid opacity-40 pointer-events-none" />
-
             <div className="relative w-full max-w-md animate-fade-in">
-                <div className="rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 shadow-floating">
+                <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
                     <div className="text-center mb-8">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary shadow-glow animate-glow-pulse">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
                             <UserPlus className="h-7 w-7 text-white" />
                         </div>
                         <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signUp.title")}</h1>
@@ -105,6 +107,20 @@ const SignUp = (): JSX.Element => {
                                 className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
                                 autoComplete="email"
                                 maxLength={255}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="+40 712 345 678"
+                                value={phone}
+                                onChange={(e) => { setPhone(e.target.value); setError(""); }}
+                                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                                autoComplete="tel"
+                                maxLength={30}
                             />
                         </div>
 
@@ -171,7 +187,7 @@ const SignUp = (): JSX.Element => {
                             </div>
                         )}
 
-                        <Button type="submit" className="w-full h-11 rounded-xl gradient-primary text-white font-semibold btn-glow shadow-glow transition-all hover:scale-[1.02]">
+                        <Button type="submit" className="h-11 w-full rounded-xl bg-primary font-semibold text-white">
                             {t("auth.signUp.button")}
                         </Button>
                     </form>
