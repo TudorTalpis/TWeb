@@ -357,13 +357,13 @@
 }
 
 .provider-calendar .fc .schedule-event-confirmed {
-  background: hsl(var(--success) / 0.18);
-  border-color: hsl(var(--success) / 0.4);
+  background: hsl(var(--primary) / 0.18);
+  border-color: hsl(var(--primary) / 0.4);
 }
 
 .provider-calendar .fc .schedule-event-completed {
-  background: hsl(var(--primary) / 0.16);
-  border-color: hsl(var(--primary) / 0.35);
+  background: hsl(var(--success) / 0.16);
+  border-color: hsl(var(--success) / 0.35);
   opacity: 0.8;
 }
 

@@ -1,109 +1,91 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Calendar,
+  CalendarCheck,
+  DollarSign,
+  Users,
+  Star,
+  Clock,
+  MapPin,
+  ArrowUpRight,
+  ArrowDownRight,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { formatDate } from "@/lib/booking";
+import { generateId } from "@/lib/storage";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, CalendarCheck, Star, DollarSign, TrendingUp, Users, Briefcase } from "lucide-react";
-import { formatDate } from "@/lib/booking";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import { generateId } from "@/lib/storage";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
-} from "recharts";
-
-const CHART_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--warning))",
-  "hsl(var(--accent))",
-  "hsl(var(--destructive))",
-  "hsl(var(--success))",
-];
+import { cn } from "@/lib/utils";
 
 const Dashboard = () => {
   const { state, dispatch } = useAppStore();
   const { t } = useI18n();
-  const userId = state.session.userId;
-  const bookings = state.bookings.filter((b) => b.userId === userId);
-  const today = new Date().toISOString().split("T")[0];
-  const pending = bookings.filter((b) => b.status === "PENDING");
-  const upcoming = bookings.filter((b) => b.date >= today && b.status === "CONFIRMED");
-  const past = bookings.filter((b) => b.date < today || (b.status !== "CONFIRMED" && b.status !== "PENDING"));
-  const completed = bookings.filter((b) => b.status === "COMPLETED");
 
   const [reviewModal, setReviewModal] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
-  const getProvider = (pid: string) => state.providerProfiles.find((p) => p.id === pid);
-  const getService = (sid: string) => state.services.find((s) => s.id === sid);
-  const hasReview = (bookingId: string) => state.reviews.some((r) => r.bookingId === bookingId);
+  const userId = state.session.userId;
+  const bookings = state.bookings.filter((b) => b.userId === userId);
+  const reviews = state.reviews.filter((r) => r.userId === userId);
+  const today = new Date().toISOString().split("T")[0];
 
-  // Stats
-  const totalSpent = completed.reduce((sum, b) => {
-    const svc = getService(b.serviceId);
-    return sum + (svc?.price ?? 0);
-  }, 0);
+  const pending = bookings.filter((b) => b.status === "PENDING");
+  const upcoming = bookings.filter((b) => b.date >= today && b.status === "CONFIRMED");
+  const past = bookings.filter((b) => b.date < today || (b.status !== "CONFIRMED" && b.status !== "PENDING"));
+  const completed = bookings.filter((b) => b.status === "COMPLETED");
+
+  const totalSpent = completed.reduce((sum, b) => sum + (state.services.find((s) => s.id === b.serviceId)?.price || 0), 0);
   const uniqueProviders = new Set(bookings.map((b) => b.providerId)).size;
-  const reviewsGiven = state.reviews.filter((r) => r.userId === userId).length;
 
-  // Pie chart: bookings by status
+  // Status breakdown
+  const statusCounts = {
+    PENDING: bookings.filter((b) => b.status === "PENDING").length,
+    CONFIRMED: bookings.filter((b) => b.status === "CONFIRMED").length,
+    COMPLETED: bookings.filter((b) => b.status === "COMPLETED").length,
+    CANCELLED: bookings.filter((b) => b.status === "CANCELLED").length,
+  };
+
   const statusData = [
-    { name: "Pending", value: pending.length },
-    { name: "Confirmed", value: bookings.filter((b) => b.status === "CONFIRMED").length },
-    { name: "Completed", value: completed.length },
-    { name: "Cancelled", value: bookings.filter((b) => b.status === "CANCELLED").length },
-  ].filter((d) => d.value > 0);
+    { name: "Pending", value: statusCounts.PENDING, fill: "#f59e0b" },
+    { name: "Confirmed", value: statusCounts.CONFIRMED, fill: "#3b82f6" },
+    { name: "Completed", value: statusCounts.COMPLETED, fill: "#10b981" },
+    { name: "Cancelled", value: statusCounts.CANCELLED, fill: "#ef4444" },
+  ].filter((s) => s.value > 0);
 
-  // Bar chart: spending per provider
-  const spendingPerProvider = Array.from(new Set(bookings.map((b) => b.providerId))).map((pid) => {
-    const prov = getProvider(pid);
-    const provBookings = completed.filter((b) => b.providerId === pid);
-    const spent = provBookings.reduce((sum, b) => {
-      const svc = getService(b.serviceId);
-      return sum + (svc?.price ?? 0);
-    }, 0);
-    return {
-      name: (prov?.name ?? "Unknown").length > 12 ? (prov?.name ?? "Unknown").slice(0, 12) + "…" : (prov?.name ?? "Unknown"),
-      spent,
-      bookings: bookings.filter((b) => b.providerId === pid).length,
-    };
-  });
+  // Top providers
+  const topProviders = Array.from(new Set(completed.map((b) => b.providerId)))
+    .map((pid) => {
+      const provider = state.providerProfiles.find((p) => p.id === pid);
+      const spent = completed
+        .filter((b) => b.providerId === pid)
+        .reduce((sum, b) => sum + (state.services.find((s) => s.id === b.serviceId)?.price || 0), 0);
+      return { name: provider?.name || "Unknown", spent };
+    })
+    .sort((a, b) => b.spent - a.spent)
+    .slice(0, 5);
 
-  const stats = [
-    {
-      label: "Total Bookings",
-      value: bookings.length,
-      icon: CalendarCheck,
-      iconBg: "bg-primary/20 text-primary",
-      trend: `${pending.length} pending · ${upcoming.length} upcoming`,
-    },
-    {
-      label: "Total Spent",
-      value: `$${totalSpent.toLocaleString()}`,
-      icon: DollarSign,
-      iconBg: "bg-success/20 text-success",
-      trend: `${completed.length} completed`,
-    },
-    {
-      label: "Providers Visited",
-      value: uniqueProviders,
-      icon: Users,
-      iconBg: "bg-accent/20 text-accent",
-      trend: `${reviewsGiven} reviews`,
-    },
-    {
-      label: "Services Used",
-      value: new Set(bookings.map((b) => b.serviceId)).size,
-      icon: Briefcase,
-      iconBg: "bg-warning/20 text-warning",
-      trend: `$${completed.length > 0 ? Math.round(totalSpent / completed.length) : 0} avg`,
-    },
-  ];
-
-  const handleSubmitReview = (bookingId: string) => {
+  const handleReviewSubmit = (bookingId: string) => {
     if (!comment.trim()) return;
     const booking = bookings.find((b) => b.id === bookingId);
     if (!booking) return;
@@ -121,257 +103,293 @@ const Dashboard = () => {
         userName: booking.userName,
       },
     });
+
     setReviewModal(null);
     setComment("");
     setRating(5);
   };
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-8 animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-display text-2xl font-bold">{t("dashboard.title")}</h1>
-        <Link to="/categories">
-          <Button variant="outline" size="sm" className="rounded-full text-xs gap-1.5">
-            <CalendarCheck className="h-3.5 w-3.5" /> {t("dashboard.bookNew")}
-          </Button>
-        </Link>
-      </div>
+  const BookingCard = ({ booking, canReview }: { booking: any; canReview?: boolean }) => {
+    const provider = state.providerProfiles.find((p) => p.id === booking.providerId);
+    const service = state.services.find((s) => s.id === booking.serviceId);
+    const hasReview = reviews.some((r) => r.bookingId === booking.id);
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className={`rounded-2xl border bg-card p-4 shadow-card transition-all hover:shadow-elevated`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.iconBg}`}>
-                <s.icon className="h-4 w-4" />
+    const statusColors = {
+      PENDING: "bg-yellow-50 border-yellow-200",
+      CONFIRMED: "bg-blue-50 border-blue-200",
+      COMPLETED: "bg-green-50 border-green-200",
+      CANCELLED: "bg-red-50 border-red-200",
+    };
+
+    return (
+      <div className={`rounded-xl border-2 ${statusColors[booking.status as keyof typeof statusColors]} p-4 hover:shadow-lg transition-all hover:scale-105 duration-200 cursor-default`}>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="font-bold text-sm text-foreground">{service?.title || "Service"}</h3>
+            <p className="text-xs text-muted-foreground font-medium">{provider?.name}</p>
+          </div>
+          <Badge className="text-[10px] font-bold" variant={booking.status === "COMPLETED" ? "default" : "outline"}>
+            {booking.status}
+          </Badge>
+        </div>
+        <div className="space-y-1.5 text-xs text-muted-foreground mb-4 bg-white/50 rounded-lg p-2">
+          <p className="flex items-center gap-2 font-medium">
+            <Calendar className="h-3.5 w-3.5 text-primary" />
+            {formatDate(booking.date)}
+          </p>
+          <p className="flex items-center gap-2 font-medium">
+            <Clock className="h-3.5 w-3.5 text-accent" />
+            {booking.startTime} - {booking.endTime}
+          </p>
+          {provider && (
+            <p className="flex items-center gap-2 font-medium">
+              <MapPin className="h-3.5 w-3.5 text-success" />
+              {provider.location}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-2 pt-3 border-t-2 border-current/10">
+          <Link to={`/providers/${booking.providerId}`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full text-[11px] h-8 font-bold hover:bg-primary/10">
+              View Provider
+            </Button>
+          </Link>
+          {booking.status === "CONFIRMED" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-[11px] h-8 text-destructive font-bold hover:bg-destructive/10"
+              onClick={() => dispatch({ type: "UPDATE_BOOKING", payload: { id: booking.id, status: "CANCELLED" } })}
+            >
+              Cancel
+            </Button>
+          )}
+          {canReview && booking.status === "COMPLETED" && !hasReview && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[11px] h-8 gap-1 font-bold hover:bg-warning/20"
+              onClick={() => setReviewModal(booking.id)}
+            >
+              <Star className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-black bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{t("dashboard.title")}</h1>
+            <p className="text-muted-foreground mt-2 font-medium">Manage your bookings, track spending & leave reviews</p>
+          </div>
+          <Link to="/categories">
+            <Button size="lg" className="rounded-full font-bold shadow-lg hover:shadow-xl">
+              ✨ {t("dashboard.bookNew")}
+            </Button>
+          </Link>
+        </div>
+
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <div className="flex justify-between items-start mb-3">
+              <p className="text-xs font-bold uppercase opacity-90">Total Bookings</p>
+              <CalendarCheck className="h-5 w-5 opacity-80" />
+            </div>
+            <p className="text-3xl font-black mb-2">{bookings.length}</p>
+            <p className="text-sm opacity-90 font-semibold">{upcoming.length} upcoming</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-green-500 to-green-600 text-white p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <div className="flex justify-between items-start mb-3">
+              <p className="text-xs font-bold uppercase opacity-90">Total Spent</p>
+              <DollarSign className="h-5 w-5 opacity-80" />
+            </div>
+            <p className="text-3xl font-black mb-2">${totalSpent}</p>
+            <p className="text-sm opacity-90 font-semibold">{completed.length} completed</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <div className="flex justify-between items-start mb-3">
+              <p className="text-xs font-bold uppercase opacity-90">Providers</p>
+              <Users className="h-5 w-5 opacity-80" />
+            </div>
+            <p className="text-3xl font-black mb-2">{uniqueProviders}</p>
+            <p className="text-sm opacity-90 font-semibold">Unique providers</p>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <div className="flex justify-between items-start mb-3">
+              <p className="text-xs font-bold uppercase opacity-90">My Reviews</p>
+              <Star className="h-5 w-5 opacity-80" />
+            </div>
+            <p className="text-3xl font-black mb-2">{reviews.length}</p>
+            <p className="text-sm opacity-90 font-semibold">Total reviews given</p>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Booking Status */}
+          <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-lg p-6 hover:shadow-xl transition-all">
+            <h3 className="font-black text-lg mb-4 text-foreground">📊 Booking Status</h3>
+            {statusData.length > 0 ? (
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusData} dataKey="value" cx="50%" cy="50%" outerRadius={80} label>
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => `${value} booking(s)`} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <TrendingUp className="h-3 w-3" />
-                <span>{s.trend}</span>
+            ) : (
+              <div className="h-[260px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No bookings yet</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Top Providers */}
+          <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-lg p-6 hover:shadow-xl transition-all lg:col-span-2">
+            <h3 className="font-black text-lg mb-4 text-foreground">🏆 Top Providers by Spending</h3>
+            {topProviders.length > 0 ? (
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topProviders} margin={{ bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Bar dataKey="spent" fill="#3b82f6" radius={[12, 12, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[260px] flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No data yet</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bookings Sections */}
+        <div className="space-y-6">
+          {/* Pending */}
+          {pending.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-black text-warning flex items-center gap-2">
+                ⏳ Pending Approval <Badge className="ml-2 bg-warning/20 text-warning font-bold">{pending.length}</Badge>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pending.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))}
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
-            <p className="text-xl font-bold mt-0.5">{s.value}</p>
+          )}
+
+          {/* Upcoming */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-black text-primary flex items-center gap-2">
+              📅 Upcoming <Badge className="ml-2 bg-primary/20 text-primary font-bold">{upcoming.length}</Badge>
+            </h2>
+            {upcoming.length === 0 ? (
+              <div className="rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <Calendar className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="text-muted-foreground font-bold">{t("dashboard.noUpcoming")}</p>
+                <Link to="/categories" className="text-primary hover:underline text-sm mt-3 inline-block font-bold">
+                  → {t("dashboard.browseServices")}
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {upcoming.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        {/* Pie: Bookings by status */}
-        <div className="rounded-2xl border bg-card p-5 shadow-card">
-          <h3 className="font-semibold text-sm mb-5">Bookings by Status</h3>
-          {statusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={75}
-                  paddingAngle={3}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {statusData.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-12">No bookings yet</p>
-          )}
-        </div>
-
-        {/* Bar: Spending per provider */}
-        <div className="rounded-2xl border bg-card p-5 shadow-card">
-          <h3 className="font-semibold text-sm mb-5">Spending by Provider</h3>
-          {spendingPerProvider.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={spendingPerProvider}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="spent" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Spent ($)" />
-                <Bar dataKey="bookings" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} name="Bookings" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-12">No data yet</p>
-          )}
+          {/* Past */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-black text-success flex items-center gap-2">
+              ✅ Past <Badge className="ml-2 bg-success/20 text-success font-bold">{past.length}</Badge>
+            </h2>
+            {past.length === 0 ? (
+              <div className="rounded-2xl border-4 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <CheckCircle className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+                <p className="text-muted-foreground font-bold">{t("dashboard.noPast")}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {past.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} canReview />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Pending bookings */}
-      {pending.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-sm font-semibold text-warning uppercase tracking-wider mb-4">Pending Approval ({pending.length})</h2>
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            {pending.map((b) => {
-              const prov = getProvider(b.providerId);
-              const svc = getService(b.serviceId);
-              return (
-                <div key={b.id} className="rounded-2xl border border-warning/30 bg-card p-5 shadow-card">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="font-semibold text-sm">{svc?.title || "Service"}</h3>
-                    <Badge className="bg-warning/10 text-warning border-0 text-[10px] rounded-full px-2">PENDING</Badge>
-                  </div>
-                  <Link to={`/providers/${b.providerId}`} className="text-xs text-primary hover:underline mt-1 inline-block">{prov?.name}</Link>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(b.date)}</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{b.startTime} – {b.endTime}</span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t flex items-center justify-between">
-                    <p className="text-[10px] text-warning">Waiting for provider confirmation...</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => dispatch({ type: "UPDATE_BOOKING", payload: { id: b.id, status: "CANCELLED" } })}
-                      className="h-7 text-[10px] rounded-full gap-1 px-3 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50 hover:bg-destructive/5"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Upcoming bookings */}
-      <section className="mb-10">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("dashboard.upcoming")} ({upcoming.length})</h2>
-        {upcoming.length === 0 ? (
-          <div className="rounded-2xl border border-dashed bg-secondary/30 p-8 text-center">
-            <p className="text-muted-foreground text-sm">{t("dashboard.noUpcoming")}</p>
-            <Link to="/categories" className="text-primary text-sm hover:underline mt-1 inline-block">{t("dashboard.browseServices")}</Link>
-          </div>
-        ) : (
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            {upcoming.map((b) => {
-              const prov = getProvider(b.providerId);
-              const svc = getService(b.serviceId);
-              return (
-                <div key={b.id} className="rounded-2xl border bg-card p-5 shadow-card transition-all duration-200 hover:shadow-elevated">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="font-semibold text-sm">{svc?.title || "Service"}</h3>
-                    <Badge className="bg-success/10 text-success border-0 text-[10px] rounded-full px-2">{t("dashboard.confirmed")}</Badge>
-                  </div>
-                  <Link to={`/providers/${b.providerId}`} className="text-xs text-primary hover:underline mt-1 inline-block">{prov?.name}</Link>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(b.date)}</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{b.startTime} – {b.endTime}</span>
-                    {prov && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{prov.location}</span>}
-                  </div>
-                  <div className="mt-3 pt-3 border-t">
-                    <div className="flex items-center gap-2">
-                      <Link to={`/providers/${b.providerId}`}>
-                        <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
-                          {t("dashboard.viewProvider")}
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => dispatch({ type: "UPDATE_BOOKING", payload: { id: b.id, status: "CANCELLED" } })}
-                        className="h-7 text-[10px] rounded-full gap-1 px-3 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50 hover:bg-destructive/5"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Past bookings */}
-      <section>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("dashboard.past")} ({past.length})</h2>
-        {past.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4">{t("dashboard.noPast")}</p>
-        ) : (
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-            {past.map((b) => {
-              const prov = getProvider(b.providerId);
-              const svc = getService(b.serviceId);
-              return (
-                <div key={b.id} className="rounded-2xl border bg-card p-5 shadow-card opacity-60">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h3 className="font-semibold text-sm">{svc?.title || "Service"}</h3>
-                    <Badge variant="secondary" className="text-[10px] capitalize rounded-full">{b.status.toLowerCase()}</Badge>
-                  </div>
-                  <Link to={`/providers/${b.providerId}`} className="text-xs text-primary hover:underline mt-1 inline-block">{prov?.name}</Link>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(b.date)}</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{b.startTime} – {b.endTime}</span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t flex items-center gap-2">
-                    <Link to={`/providers/${b.providerId}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
-                        {t("dashboard.viewProvider")}
-                      </Button>
-                    </Link>
-                    {b.status === "COMPLETED" && !hasReview(b.id) && (
-                      <Button variant="ghost" size="sm" onClick={() => setReviewModal(b.id)} className="h-7 text-[10px] gap-1 px-2 text-primary">
-                        <Star className="h-3 w-3" /> {t("dashboard.leaveReview")}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
       {/* Review Modal */}
       <Dialog open={!!reviewModal} onOpenChange={() => setReviewModal(null)}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
+        <DialogContent className="rounded-2xl sm:max-w-md border-2 border-slate-200 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>{t("review.title")}</DialogTitle>
+            <DialogTitle className="text-2xl font-black">⭐ Leave a Review</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">{t("review.rating")}</label>
+              <label className="mb-3 block text-sm font-bold text-foreground">{t("review.rating")}</label>
               <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((r) => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <button
-                    key={r}
-                    onClick={() => setRating(r)}
-                    className="transition-all duration-200"
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className="transition-all hover:scale-125"
                   >
-                    <Star className={`h-6 w-6 ${r <= rating ? "fill-warning text-warning" : "text-muted-foreground"}`} />
+                    <Star
+                      className={`h-7 w-7 ${star <= rating ? "fill-yellow-400 text-yellow-400 drop-shadow-lg" : "text-muted-foreground/30"}`}
+                    />
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">{t("review.comment")}</label>
+              <label className="mb-2 block text-sm font-bold text-foreground">{t("review.comment")}</label>
               <Textarea
                 placeholder={t("review.placeholder")}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                className="rounded-xl focus:ring-2 focus:ring-primary/20 min-h-[100px]"
+                className="rounded-lg border-2 border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/30 text-base font-medium"
               />
             </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => setReviewModal(null)} className="rounded-xl">{t("book.cancel")}</Button>
-            <Button onClick={() => handleSubmitReview(reviewModal!)} className="rounded-xl bg-primary text-primary-foreground">{t("review.submit")}</Button>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setReviewModal(null)} className="font-bold">
+              {t("book.cancel")}
+            </Button>
+            <Button
+              onClick={() => reviewModal && handleReviewSubmit(reviewModal)}
+              className="font-bold shadow-lg hover:shadow-xl"
+            >
+              {t("review.submit")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -380,6 +398,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
-

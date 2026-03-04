@@ -5,7 +5,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { AlertCircle, CalendarDays, Check, CircleCheck, Clock3, Phone, Plus, Trash2, User } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, CircleCheck, Clock3, Phone, Plus, User, XCircle } from "lucide-react";
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,9 +49,9 @@ interface BookingEventData {
 
 const STATUS_BADGE_CLASS: Record<BookingStatus, string> = {
   PENDING: "bg-warning/15 text-warning border-warning/30",
-  CONFIRMED: "bg-success/15 text-success border-success/30",
-  COMPLETED: "bg-primary/15 text-primary border-primary/30",
-  CANCELLED: "bg-muted text-muted-foreground border-border",
+  CONFIRMED: "bg-primary/15 text-primary border-primary/30",
+  COMPLETED: "bg-success/15 text-success border-success/30",
+  CANCELLED: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 const FILTERS: Array<{ value: CalendarFilter; label: string }> = [
@@ -506,6 +506,8 @@ const ProviderSchedule = () => {
 
   const completeSelectedBooking = () => {
     if (!selectedBooking || selectedBooking.status !== "CONFIRMED" || !currentProvider) return;
+    const bookingEndMs = toDateTimeMs(selectedBooking.date, selectedBooking.endTime);
+    if (bookingEndMs === null || Date.now() < bookingEndMs) return;
 
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "COMPLETED" } });
 
@@ -527,16 +529,38 @@ const ProviderSchedule = () => {
     }
   };
 
-  const deleteSelectedBooking = () => {
-    if (!selectedBooking) return;
-    dispatch({ type: "DELETE_BOOKING", payload: selectedBooking.id });
-    setSelectedBookingId(null);
+  const cancelSelectedBooking = () => {
+    if (!selectedBooking || selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED" || !currentProvider) return;
+
+    dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "CANCELLED" } });
+
+    if (!selectedBooking.userId.startsWith("guest-")) {
+      const serviceName = servicesById.get(selectedBooking.serviceId)?.title ?? "service";
+      dispatch({
+        type: "ADD_NOTIFICATION",
+        payload: {
+          id: generateId(),
+          userId: selectedBooking.userId,
+          type: "booking_success",
+          title: "Booking Cancelled",
+          message: `${currentProvider.name} marked your ${serviceName} booking on ${formatDateLabel(selectedBooking.date)} at ${selectedBooking.startTime} as not taking place.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTo: "/dashboard",
+        },
+      });
+    }
   };
 
   const { endTime: previewEndTime, crossesMidnight: previewCrossesMidnight } = getEndTime(
     bookingForm.startTime,
     bookingForm.duration,
   );
+  const canMarkSelectedComplete = (() => {
+    if (!selectedBooking || selectedBooking.status !== "CONFIRMED") return false;
+    const bookingEndMs = toDateTimeMs(selectedBooking.date, selectedBooking.endTime);
+    return bookingEndMs !== null && Date.now() >= bookingEndMs;
+  })();
 
   if (!currentProvider) return null;
 
@@ -746,6 +770,8 @@ const ProviderSchedule = () => {
                         variant="outline"
                         className="gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
                         onClick={completeSelectedBooking}
+                        disabled={!canMarkSelectedComplete}
+                        title={`Can be completed at ${selectedBooking.endTime} or later`}
                       >
                         <CircleCheck className="h-3.5 w-3.5" />
                         Mark Completed
@@ -755,10 +781,11 @@ const ProviderSchedule = () => {
                       size="sm"
                       variant="outline"
                       className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={deleteSelectedBooking}
+                      onClick={cancelSelectedBooking}
+                      disabled={selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED"}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
+                      <XCircle className="h-3.5 w-3.5" />
+                      Cancel
                     </Button>
                   </div>
                 </div>
