@@ -11,11 +11,11 @@ import type {
 } from "@/types";
 
 const DEMO_USERS: AppUser[] = [
-  { id: "user1", name: "Alex Johnson", email: "alex@demo.com", password: "Prezentare1", role: "USER", avatar: "" },
-  { id: "prov1", name: "Maria Garcia", email: "maria@demo.com", password: "Prezentare1", role: "PROVIDER", avatar: "" },
-  { id: "prov2", name: "James Wilson", email: "james@demo.com", password: "Prezentare", role: "PROVIDER", avatar: "" },
-  { id: "prov3", name: "Sarah Lee", email: "sarah@demo.com", password: "Prezentare1", role: "PROVIDER", avatar: "" },
-  { id: "admin1", name: "Admin User", email: "admin@demo.com", password: "Prezentare1", role: "ADMIN", avatar: "" },
+  { id: "user1", name: "Alex Johnson", email: "alex@demo.com", phone: "0712 345 678", password: "Prezentare1", role: "USER", avatar: "" },
+  { id: "prov1", name: "Maria Garcia", email: "maria@demo.com", phone: "0711 111 111", password: "Prezentare1", role: "PROVIDER", avatar: "" },
+  { id: "prov2", name: "James Wilson", email: "james@demo.com", phone: "0722 222 222", password: "Prezentare", role: "PROVIDER", avatar: "" },
+  { id: "prov3", name: "Sarah Lee", email: "sarah@demo.com", phone: "0733 333 333", password: "Prezentare1", role: "PROVIDER", avatar: "" },
+  { id: "admin1", name: "Admin User", email: "admin@demo.com", phone: "0744 444 444", password: "Prezentare1", role: "ADMIN", avatar: "" },
 ];
 
 const DEMO_CATEGORIES: Category[] = [
@@ -38,7 +38,7 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
       "https://images.unsplash.com/photo-1584820927498-cfe5211fd8bf?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1527515637462-cee1652e65b1?w=400&h=300&fit=crop",
     ],
-    phone: "555-0101", location: "Downtown",
+    phone: "555-0101", location: "Downtown", defaultServiceBufferMinutes: 15, autoConfirm: false,
     rating: 4.9, reviewCount: 127, featured: true, sponsored: false, blocked: false,
   },
   {
@@ -50,7 +50,7 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
       "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop",
     ],
-    phone: "555-0102", location: "Midtown",
+    phone: "555-0102", location: "Midtown", defaultServiceBufferMinutes: 15, autoConfirm: false,
     rating: 4.7, reviewCount: 89, featured: false, sponsored: true, blocked: false,
   },
   {
@@ -64,18 +64,18 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
       "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&h=300&fit=crop",
       "https://images.unsplash.com/photo-1554080353-a576cf803bda?w=400&h=300&fit=crop",
     ],
-    phone: "555-0103", location: "Uptown",
+    phone: "555-0103", location: "Uptown", defaultServiceBufferMinutes: 20, autoConfirm: false,
     rating: 4.8, reviewCount: 64, featured: false, sponsored: false, blocked: false,
   },
 ];
 
 const DEMO_SERVICES: Service[] = [
-  { id: "svc1", providerId: "pp1", title: "Standard Cleaning", description: "Full home cleaning — kitchen, bathrooms, living areas", price: 80, duration: 120, categoryId: "cat1" },
-  { id: "svc2", providerId: "pp1", title: "Deep Cleaning", description: "Intensive cleaning including appliances and hard-to-reach areas", price: 150, duration: 240, categoryId: "cat1" },
-  { id: "svc3", providerId: "pp2", title: "Personal Training Session", description: "1-on-1 training with custom exercises", price: 60, duration: 60, categoryId: "cat2" },
-  { id: "svc4", providerId: "pp2", title: "Nutrition Consultation", description: "Custom meal plan and dietary guidance", price: 45, duration: 45, categoryId: "cat2" },
-  { id: "svc5", providerId: "pp3", title: "Portrait Session", description: "Professional portrait photography — 20 edited photos", price: 120, duration: 90, categoryId: "cat3" },
-  { id: "svc6", providerId: "pp3", title: "Event Photography", description: "Full event coverage — unlimited photos", price: 350, duration: 240, categoryId: "cat3" },
+  { id: "svc1", providerId: "pp1", title: "Standard Cleaning", description: "Full home cleaning — kitchen, bathrooms, living areas", price: 80, duration: 120, bufferMinutes: 15, categoryId: "cat1" },
+  { id: "svc2", providerId: "pp1", title: "Deep Cleaning", description: "Intensive cleaning including appliances and hard-to-reach areas", price: 150, duration: 240, bufferMinutes: 30, categoryId: "cat1" },
+  { id: "svc3", providerId: "pp2", title: "Personal Training Session", description: "1-on-1 training with custom exercises", price: 60, duration: 60, bufferMinutes: 15, categoryId: "cat2" },
+  { id: "svc4", providerId: "pp2", title: "Nutrition Consultation", description: "Custom meal plan and dietary guidance", price: 45, duration: 45, bufferMinutes: 15, categoryId: "cat2" },
+  { id: "svc5", providerId: "pp3", title: "Portrait Session", description: "Professional portrait photography — 20 edited photos", price: 120, duration: 90, bufferMinutes: 20, categoryId: "cat3" },
+  { id: "svc6", providerId: "pp3", title: "Event Photography", description: "Full event coverage — unlimited photos", price: 350, duration: 240, bufferMinutes: 30, categoryId: "cat3" },
 ];
 
 const DEMO_AVAILABILITY: Availability[] = [

@@ -16,7 +16,7 @@ const SettingsPage = () => {
   const [name, setName] = useState(currentUser?.name ?? "");
   const [email, setEmail] = useState(currentUser?.email ?? "");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(currentUser?.phone ?? "");
 
   if (!currentUser) {
     return (

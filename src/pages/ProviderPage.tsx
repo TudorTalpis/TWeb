@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Star, MapPin, Clock, DollarSign, ArrowLeft, Phone, Briefcase, AlertCircle, Image, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { useAppStore } from "@/store/AppContext";
 
 const ProviderPage = () => {
@@ -97,14 +98,22 @@ const ProviderPage = () => {
         <div className="mx-auto max-w-6xl px-4 py-8">
           {activeTab === "services" && (
               <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
-                {services.map((svc) => (
+                {services.map((svc) => {
+                  const effectiveBuffer = getEffectiveServiceBufferMinutes(svc, provider);
+                  return (
                     <div key={svc.id} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-5 shadow-card card-hover group">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display font-semibold text-sm group-hover:text-primary transition-colors">{svc.title}</h3>
                         <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">{svc.description}</p>
                         <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1 font-semibold text-foreground"><DollarSign className="h-3 w-3 text-primary" />{svc.price}</span>
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-muted-foreground" />{svc.duration} min</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            {svc.duration} min
+                            {effectiveBuffer > 0
+                              ? ` + ${effectiveBuffer} min buffer`
+                              : ""}
+                          </span>
                         </div>
                       </div>
                       {(hasRole(["USER", "PROVIDER"]) || state.session.role === "GUEST") && (
@@ -115,7 +124,8 @@ const ProviderPage = () => {
                           </Link>
                       )}
                     </div>
-                ))}
+                  );
+                })}
                 {services.length === 0 && (
                     <p className="text-center text-muted-foreground py-12 col-span-full text-sm">No services listed yet.</p>
                 )}

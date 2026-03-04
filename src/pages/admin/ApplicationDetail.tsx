@@ -49,6 +49,8 @@ const ApplicationDetail = () => {
           galleryPhotos: app.galleryPhotos || [],
           phone: app.phone,
           location: app.location,
+          defaultServiceBufferMinutes: 0,
+          autoConfirm: false,
           rating: 5.0,
           reviewCount: 0,
           featured: false,

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, type ReactNode
 import type { AppState, AppAction, Role } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
+import { isHourOccupied } from "@/lib/booking";
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -44,6 +45,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, timeoff: state.timeoff.filter((t) => t.id !== action.payload) };
 
     case "ADD_BOOKING":
+      if (
+        isHourOccupied(
+          action.payload.providerId,
+          action.payload.date,
+          action.payload.startTime,
+          action.payload.endTime,
+          state.bookings
+        )
+      ) {
+        return state;
+      }
       return { ...state, bookings: [...state.bookings, action.payload] };
     case "UPDATE_BOOKING":
       return {
@@ -128,11 +140,27 @@ function getInitialState(): AppState {
     // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
     const seedById = new Map(seed.users.map((u) => [u.id, u]));
     const savedUsers = saved.users as any[];
-    const users = savedUsers.map((u) => seedById.get(u.id) ?? u);
+    const users = savedUsers.map((u) => ({ ...(seedById.get(u.id) ?? u), phone: (seedById.get(u.id)?.phone ?? u.phone ?? "") }));
     for (const seedUser of seed.users) {
       if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
     }
-    return { ...seed, ...saved, users };
+    const providerProfiles = (saved.providerProfiles ?? seed.providerProfiles).map((p: any) => {
+      const parsedDefaultBuffer = Number(p.defaultServiceBufferMinutes);
+      return {
+        ...p,
+        defaultServiceBufferMinutes: Number.isFinite(parsedDefaultBuffer) ? Math.max(0, parsedDefaultBuffer) : 0,
+        autoConfirm: p.autoConfirm ?? false,
+      };
+    });
+    const services = (saved.services ?? seed.services).map((s: any) => {
+      const hasCustomBuffer = s.bufferMinutes !== null && s.bufferMinutes !== undefined && s.bufferMinutes !== "";
+      const parsedBuffer = Number(s.bufferMinutes);
+      return {
+        ...s,
+        bufferMinutes: hasCustomBuffer && Number.isFinite(parsedBuffer) ? Math.max(0, parsedBuffer) : null,
+      };
+    });
+    return { ...seed, ...saved, users, providerProfiles, services };
   }
   return seed;
 }

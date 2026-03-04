@@ -6,6 +6,7 @@ export interface AppUser {
   id: string;
   name: string;
   email: string;
+  phone: string;
   password: string;
   role: Role;
   avatar?: string;
@@ -39,6 +40,8 @@ export interface ProviderProfile {
   galleryPhotos: string[]; // up to 6 portfolio photos
   phone: string;
   location: string;
+  defaultServiceBufferMinutes: number; // provider-level fallback buffer used when service has no custom buffer
+  autoConfirm: boolean;
   rating: number;
   reviewCount: number;
   featured: boolean;
@@ -54,6 +57,7 @@ export interface Service {
   description: string;
   price: number;
   duration: number; // minutes
+  bufferMinutes: number | null; // null means use provider defaultServiceBufferMinutes
   categoryId: string;
 }
 
@@ -92,6 +96,7 @@ export interface Booking {
   status: BookingStatus;
   createdAt: string;
   userName: string;
+  userPhone?: string;
 }
 
 // ============ PROVIDER APPLICATION ============

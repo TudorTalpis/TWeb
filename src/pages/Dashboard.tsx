@@ -275,11 +275,21 @@ const Dashboard = () => {
                     {prov && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{prov.location}</span>}
                   </div>
                   <div className="mt-3 pt-3 border-t">
-                    <Link to={`/providers/${b.providerId}`}>
-                      <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
-                        {t("dashboard.viewProvider")}
+                    <div className="flex items-center gap-2">
+                      <Link to={`/providers/${b.providerId}`}>
+                        <Button variant="outline" size="sm" className="h-7 text-[10px] rounded-full gap-1 px-3">
+                          {t("dashboard.viewProvider")}
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => dispatch({ type: "UPDATE_BOOKING", payload: { id: b.id, status: "CANCELLED" } })}
+                        className="h-7 text-[10px] rounded-full gap-1 px-3 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/50 hover:bg-destructive/5"
+                      >
+                        Cancel
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
               );

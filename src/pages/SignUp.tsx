@@ -15,6 +15,7 @@ const SignUp = (): JSX.Element => {
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -39,11 +40,14 @@ const SignUp = (): JSX.Element => {
         setError("");
         const trimmedName = name.trim();
         const trimmedEmail = email.trim().toLowerCase();
+        const trimmedPhone = phone.trim();
         if (!trimmedName) { setError(t("auth.error.noFullName")); return; }
         if (trimmedName.length < 2) { setError(t("auth.error.nameTooShort")); return; }
         if (!trimmedEmail) { setError(t("auth.error.noEmail")); return; }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trimmedEmail)) { setError(t("auth.error.invalidEmail")); return; }
+        if (!trimmedPhone) { setError("Please enter your phone number."); return; }
+        if (trimmedPhone.length < 6) { setError("Phone number is too short."); return; }
         const nameTaken = state.users.some((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
         if (nameTaken) { setError(t("auth.error.nameTaken")); return; }
         const emailTaken = state.users.some((u: any) => u.email.toLowerCase() === trimmedEmail);
@@ -55,6 +59,7 @@ const SignUp = (): JSX.Element => {
             id: generateId(),
             name: trimmedName,
             email: trimmedEmail,
+            phone: trimmedPhone,
             password,
             role: "USER" as const,
         };
@@ -102,6 +107,20 @@ const SignUp = (): JSX.Element => {
                                 className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
                                 autoComplete="email"
                                 maxLength={255}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="+40 712 345 678"
+                                value={phone}
+                                onChange={(e) => { setPhone(e.target.value); setError(""); }}
+                                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                                autoComplete="tel"
+                                maxLength={30}
                             />
                         </div>
 
