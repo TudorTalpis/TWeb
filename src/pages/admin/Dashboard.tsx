@@ -228,9 +228,9 @@ const AdminDashboard = () => {
   return (
     <AdminPanelLayout>
       <div className="space-y-6">
-        <section className={cn(PANEL_CLASS, "p-6")}>
+        <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Platform Dashboard</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Real-time view of provider network growth, booking health, and revenue trends.
           </p>
         </section>

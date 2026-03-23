@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { type LucideIcon, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PanelLayoutProps {
@@ -14,9 +14,8 @@ interface PanelLayoutProps {
 export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProps) {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const SidebarContent = () => (
       <>
@@ -92,7 +91,9 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
           </aside>
 
           <main className="min-h-[calc(100vh-4rem)] p-4">
-            {children}
+            <div className="mx-auto w-full max-w-7xl">
+              {children}
+            </div>
           </main>
         </div>
     );
@@ -102,13 +103,6 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
       <div className="animate-fade-in">
         <div className="flex min-h-[calc(100vh-4rem)]">
           <aside
-              onMouseEnter={() => {
-                if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                setCollapsed(false);
-              }}
-              onMouseLeave={() => {
-                hoverTimeout.current = setTimeout(() => setCollapsed(true), 400);
-              }}
               className={cn(
                   "sticky top-16 self-start shrink-0 border-r border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 flex flex-col",
                   collapsed ? "w-14" : "w-48"
@@ -118,7 +112,9 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
             <SidebarContent />
           </aside>
           <main className="flex-1 p-6 min-w-0">
-            {children}
+            <div className="mx-auto w-full max-w-7xl">
+              {children}
+            </div>
           </main>
         </div>
       </div>

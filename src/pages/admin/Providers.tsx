@@ -19,9 +19,9 @@ const AdminProviders = () => {
   return (
     <AdminPanelLayout>
       <div className="space-y-6">
-        <section className={cn(PANEL_CLASS, "p-6")}>
+        <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Providers</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Manage featured placement, sponsored visibility, and account access.</p>
+          <p className="text-sm text-muted-foreground">Manage featured placement, sponsored visibility, and account access.</p>
         </section>
 
         <section className={PANEL_CLASS}>

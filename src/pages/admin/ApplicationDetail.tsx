@@ -71,7 +71,7 @@ const ApplicationDetail = () => {
         message: `Your provider application "${app.name}" has been approved.`,
         read: false,
         createdAt: new Date().toISOString(),
-        linkTo: "/provider/dashboard",
+        linkTo: "/dashboard",
       },
     });
     navigate("/admin/applications");

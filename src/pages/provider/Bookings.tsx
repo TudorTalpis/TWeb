@@ -268,9 +268,9 @@ const ProviderBookings = () => {
   return (
     <ProviderPanelLayout>
       <div className="space-y-6">
-        <section className={cn(PANEL_CLASS, "p-6")}>
+        <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Bookings Dashboard</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Manage confirmations, completion, and cancellations from one place.
           </p>
         </section>

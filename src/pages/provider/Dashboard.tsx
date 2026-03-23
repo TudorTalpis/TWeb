@@ -207,11 +207,8 @@ const ProviderDashboard = () => {
   return (
     <ProviderPanelLayout>
       <div className="space-y-6">
-        <section className={cn(PANEL_CLASS, "p-6")}>
+        <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Business Dashboard</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Snapshot for {currentProvider.name}. Trends compare this week against the previous week.
-          </p>
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
