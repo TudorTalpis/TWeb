@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
@@ -378,14 +378,15 @@ const AdminProviderDetail = () => {
                       return (
                           <tr key={b.id} className="text-xs">
                             <td className="py-2.5">{b.userName}</td>
-                            <td className="py-2.5">{svc?.title ?? "â€”"}</td>
+                            <td className="py-2.5">{svc?.title ?? "-"}</td>
                             <td className="py-2.5">{b.date}</td>
-                            <td className="py-2.5">{b.startTime}â€“{b.endTime}</td>
+                            <td className="py-2.5">{b.startTime} - {b.endTime}</td>
                             <td className="py-2.5">
                           <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
                               b.status === "COMPLETED" ? "bg-success/15 text-success" :
                                   b.status === "CONFIRMED" ? "bg-primary/15 text-primary" :
-                                      "bg-destructive/15 text-destructive"
+                                      b.status === "PENDING" ? "bg-warning/15 text-warning" :
+                                          "bg-destructive/15 text-destructive"
                           }`}>
                             {b.status}
                           </span>

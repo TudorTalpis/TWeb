@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -345,39 +345,75 @@
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  overflow: visible;
+  z-index: 1;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.provider-calendar .fc .schedule-event:hover,
+.provider-calendar .fc .schedule-event-hovered {
+  z-index: 30;
+}
+
+.provider-calendar .fc .fc-timegrid-event .fc-event-main {
+  overflow: visible;
+}
+
+.provider-calendar .fc .fc-timegrid-event {
+  overflow: visible;
 }
 
 .provider-calendar .fc .schedule-event {
   color: hsl(var(--foreground));
+  background: var(--event-bg);
+  border-color: var(--event-border);
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: var(--event-accent);
+  box-shadow: var(--shadow-card);
 }
 
 .provider-calendar .fc .schedule-event-pending {
-  background: hsl(var(--warning) / 0.22);
-  border-color: hsl(var(--warning) / 0.45);
+  --event-accent: hsl(var(--warning));
+  --event-bg: hsl(38 100% 92%);
+  --event-border: hsl(38 85% 80%);
+  --event-muted: hsl(38 40% 35%);
 }
 
 .provider-calendar .fc .schedule-event-confirmed {
-  background: hsl(var(--success) / 0.18);
-  border-color: hsl(var(--success) / 0.4);
+  --event-accent: hsl(var(--primary));
+  --event-bg: hsl(210 100% 94%);
+  --event-border: hsl(210 70% 82%);
+  --event-muted: hsl(220 35% 35%);
 }
 
 .provider-calendar .fc .schedule-event-completed {
-  background: hsl(var(--primary) / 0.16);
-  border-color: hsl(var(--primary) / 0.35);
-  opacity: 0.8;
+  --event-accent: hsl(var(--success));
+  --event-bg: hsl(152 60% 92%);
+  --event-border: hsl(152 45% 80%);
+  --event-muted: hsl(152 35% 32%);
+  opacity: 0.96;
 }
 
 .provider-calendar .fc .schedule-event-card {
-  padding: 6px 8px;
-  line-height: 1.2;
+  padding: 6px 10px;
+  line-height: 1.3;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  overflow: visible;
 }
 
 .provider-calendar .fc .schedule-event-title {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -386,9 +422,9 @@
 }
 
 .provider-calendar .fc .schedule-event-subtitle {
-  margin-top: 2px;
+  margin-top: 0;
   font-size: 11px;
-  color: hsl(var(--muted-foreground));
+  color: var(--event-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -396,9 +432,91 @@
   -webkit-user-select: none;
 }
 
+.provider-calendar .fc .schedule-event-time {
+  display: none;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.provider-calendar .fc .schedule-event-status {
+  display: none;
+  margin-top: 2px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--event-muted);
+}
+
+.provider-calendar .fc .schedule-event.fc-timegrid-event:hover,
+.provider-calendar .fc .schedule-event-hovered {
+  z-index: 40;
+  height: auto !important;
+  min-height: 120px;
+  box-shadow: var(--shadow-floating);
+  transform: translateY(-2px);
+}
+
+.provider-calendar .fc .fc-timegrid-event.fc-event:hover .fc-event-main {
+  height: auto !important;
+  overflow: visible;
+}
+
+.provider-calendar .fc .schedule-event:hover .schedule-event-card,
+.provider-calendar .fc .schedule-event-hovered .schedule-event-card {
+  padding: 10px 12px;
+  justify-content: flex-start;
+  gap: 4px;
+  min-height: 100%;
+}
+
+.provider-calendar .fc .schedule-event:hover .schedule-event-title,
+.provider-calendar .fc .schedule-event:hover .schedule-event-subtitle,
+.provider-calendar .fc .schedule-event-hovered .schedule-event-title,
+.provider-calendar .fc .schedule-event-hovered .schedule-event-subtitle {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+}
+
+.provider-calendar .fc .schedule-event:hover .schedule-event-time,
+.provider-calendar .fc .schedule-event:hover .schedule-event-status,
+.provider-calendar .fc .schedule-event-hovered .schedule-event-time,
+.provider-calendar .fc .schedule-event-hovered .schedule-event-status {
+  display: block;
+}
+
+.provider-calendar .fc .fc-timegrid-event-harness,
+.provider-calendar .fc .fc-timegrid-event-harness-inset {
+  overflow: visible;
+  z-index: 1;
+}
+
+.provider-calendar .fc .fc-timegrid-event-harness:hover,
+.provider-calendar .fc .fc-timegrid-event-harness-inset:hover {
+  z-index: 200;
+}
+
+.provider-calendar .fc .fc-timegrid-event-harness:hover .fc-timegrid-event {
+  z-index: 220;
+}
+
+.provider-calendar .fc .schedule-event-harness-hovered {
+  z-index: 400 !important;
+}
+
+.provider-calendar .fc .schedule-event-hovered {
+  z-index: 420 !important;
+}
+
 .provider-calendar .fc .schedule-timeoff {
   background: hsl(var(--destructive) / 0.12);
   opacity: 0.6;
+}
+
+.provider-calendar .fc .schedule-selection {
+  background: hsl(var(--primary) / 0.18);
 }
 
 @media (max-width: 1023px) {

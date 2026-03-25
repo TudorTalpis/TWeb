@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { addDays, format, isBefore, startOfDay } from "date-fns";
-import type { DateSelectArg, EventClickArg, EventContentArg } from "@fullcalendar/core";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { addDays, addMinutes, format, isBefore, startOfDay } from "date-fns";
+import type { EventClickArg, EventContentArg, EventDropArg, EventMountArg } from "@fullcalendar/core";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { AlertCircle, CalendarDays, Check, CircleCheck, Clock3, Phone, Plus, Trash2, User } from "lucide-react";
+import { AlertCircle, CalendarDays, Check, CircleCheck, Clock3, Phone, Plus, User, XCircle } from "lucide-react";
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,15 @@ interface CustomServiceState {
   duration: number;
 }
 
+interface EditBookingFormState {
+  clientName: string;
+  clientPhone: string;
+  serviceId: string;
+  date: string;
+  startTime: string;
+  duration: number;
+}
+
 interface BookingEventData {
   bookingId: string;
   userName: string;
@@ -49,9 +58,9 @@ interface BookingEventData {
 
 const STATUS_BADGE_CLASS: Record<BookingStatus, string> = {
   PENDING: "bg-warning/15 text-warning border-warning/30",
-  CONFIRMED: "bg-success/15 text-success border-success/30",
-  COMPLETED: "bg-primary/15 text-primary border-primary/30",
-  CANCELLED: "bg-muted text-muted-foreground border-border",
+  CONFIRMED: "bg-primary/15 text-primary border-primary/30",
+  COMPLETED: "bg-success/15 text-success border-success/30",
+  CANCELLED: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 const FILTERS: Array<{ value: CalendarFilter; label: string }> = [
@@ -132,6 +141,13 @@ function getEndTime(startTime: string, duration: number) {
   };
 }
 
+function getDurationMinutes(startTime: string, endTime: string) {
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+  if (end >= start) return end - start;
+  return end + 24 * 60 - start;
+}
+
 function rangesOverlap(startA: string, endA: string, startB: string, endB: string) {
   const aStart = timeToMinutes(startA);
   const aEnd = timeToMinutes(endA);
@@ -150,6 +166,11 @@ const ProviderSchedule = () => {
   const todayKey = format(new Date(), "yyyy-MM-dd");
   const providerId = currentProvider?.id ?? "";
   const calendarRef = useRef<FullCalendar | null>(null);
+  const selectionStepMinutes = 30;
+  const [selectionPreview, setSelectionPreview] = useState<{ start: Date; end: Date } | null>(null);
+  const selectionPreviewRef = useRef<{ start: Date; end: Date } | null>(null);
+  const selectingRef = useRef(false);
+  const selectionStartRef = useRef<{ date: string; dateTime: Date } | null>(null);
 
   const initialSelectedDate = (() => {
     const relevantBookings = state.bookings
@@ -174,8 +195,12 @@ const ProviderSchedule = () => {
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>("ALL");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [useCustomService, setUseCustomService] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [moveError, setMoveError] = useState<string | null>(null);
+  const [pendingMove, setPendingMove] = useState<{ bookingId: string; date: string; startTime: string; endTime: string } | null>(null);
   const [bookingForm, setBookingForm] = useState<AddBookingFormState>({
     clientName: "",
     clientPhone: "",
@@ -187,6 +212,14 @@ const ProviderSchedule = () => {
   const [customService, setCustomService] = useState<CustomServiceState>({
     title: "",
     price: 0,
+    duration: 60,
+  });
+  const [editForm, setEditForm] = useState<EditBookingFormState>({
+    clientName: "",
+    clientPhone: "",
+    serviceId: "",
+    date: todayKey,
+    startTime: "09:00",
     duration: 60,
   });
 
@@ -318,7 +351,22 @@ const ProviderSchedule = () => {
     });
   }, [providerTimeoff]);
 
-  const allEvents = [...calendarEvents, ...timeoffEvents];
+  const updateSelectionPreview = useCallback((value: { start: Date; end: Date } | null) => {
+    selectionPreviewRef.current = value;
+    setSelectionPreview(value);
+  }, []);
+
+  const selectionEvents = selectionPreview
+    ? [{
+        id: "selection-preview",
+        start: selectionPreview.start,
+        end: selectionPreview.end,
+        display: "background" as const,
+        classNames: ["schedule-selection"],
+      }]
+    : [];
+
+  const allEvents = [...calendarEvents, ...timeoffEvents, ...selectionEvents];
   const hiddenBookingsCount = Math.max(0, filteredBookings.length - calendarEvents.length);
 
   useEffect(() => {
@@ -326,6 +374,106 @@ const ProviderSchedule = () => {
     if (!api) return;
     api.gotoDate(selectedDate);
   }, [selectedDate]);
+
+  useEffect(() => {
+    const calendarEl = calendarRef.current?.el as HTMLElement | null;
+    if (!calendarEl) return;
+
+    const getSlotInfo = (clientX: number, clientY: number) => {
+      const slotsTable = calendarEl.querySelector(".fc-timegrid-slots") as HTMLElement | null;
+      const slotCell = slotsTable?.querySelector(".fc-timegrid-slot") as HTMLElement | null;
+      if (!slotsTable || !slotCell) return null;
+
+      const slotsRect = slotsTable.getBoundingClientRect();
+      const slotHeight = slotCell.getBoundingClientRect().height || 1;
+      const offsetY = Math.max(0, Math.min(clientY - slotsRect.top, slotsRect.height - 1));
+      const slotIndex = Math.floor(offsetY / slotHeight);
+
+      const slotStartMinutes = toMinutesSafe(calendarHourRange.min) ?? 0;
+      const minutesFromStart = slotIndex * selectionStepMinutes;
+      const timeMinutes = slotStartMinutes + minutesFromStart;
+      const time = minutesToTime(timeMinutes);
+
+      const columns = Array.from(calendarEl.querySelectorAll(".fc-timegrid-col")) as HTMLElement[];
+      const column = columns.find((col) => {
+        const rect = col.getBoundingClientRect();
+        return clientX >= rect.left && clientX <= rect.right;
+      });
+      const date = column?.getAttribute("data-date");
+      if (!date) return null;
+
+      const dateTime = new Date(`${date}T${time}:00`);
+      if (Number.isNaN(dateTime.getTime())) return null;
+      return { date, dateTime };
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest(".fc-event")) return;
+      const slotInfo = getSlotInfo(event.clientX, event.clientY);
+      if (!slotInfo) return;
+
+      selectingRef.current = true;
+      selectionStartRef.current = slotInfo;
+      updateSelectionPreview({
+        start: slotInfo.dateTime,
+        end: addMinutes(slotInfo.dateTime, selectionStepMinutes),
+      });
+      calendarEl.setPointerCapture?.(event.pointerId);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!selectingRef.current || !selectionStartRef.current) return;
+      const slotInfo = getSlotInfo(event.clientX, event.clientY);
+      if (!slotInfo || slotInfo.date !== selectionStartRef.current.date) return;
+
+      const start = selectionStartRef.current.dateTime;
+      const end =
+        slotInfo.dateTime >= start
+          ? addMinutes(slotInfo.dateTime, selectionStepMinutes)
+          : addMinutes(start, selectionStepMinutes);
+
+      updateSelectionPreview({ start, end });
+    };
+
+    const onPointerUp = () => {
+      if (!selectingRef.current || !selectionStartRef.current) return;
+
+      selectingRef.current = false;
+      const startInfo = selectionStartRef.current;
+      const preview = selectionPreviewRef.current;
+      selectionStartRef.current = null;
+
+      if (!preview) {
+        updateSelectionPreview(null);
+        return;
+      }
+
+      const duration = Math.round((preview.end.getTime() - preview.start.getTime()) / (1000 * 60));
+      if (duration < selectionStepMinutes) {
+        updateSelectionPreview(null);
+        return;
+      }
+
+      setSelectedDate(startInfo.date);
+      openAddDialog({
+        date: startInfo.date,
+        startTime: format(preview.start, "HH:mm"),
+        duration,
+      });
+    };
+
+    calendarEl.addEventListener("pointerdown", onPointerDown);
+    calendarEl.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
+    return () => {
+      calendarEl.removeEventListener("pointerdown", onPointerDown);
+      calendarEl.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [calendarHourRange.min, selectionStepMinutes, updateSelectionPreview]);
 
   const resetAddDialog = (preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) => {
     const fallbackService = providerServices[0];
@@ -339,7 +487,7 @@ const ProviderSchedule = () => {
     setBookingForm({
       clientName: "",
       clientPhone: "",
-      serviceId: useCustom ? "" : fallbackService?.id ?? "",
+      serviceId: "",
       date: preset?.date ?? selectedDate,
       startTime: preset?.startTime ?? "09:00",
       duration,
@@ -357,18 +505,24 @@ const ProviderSchedule = () => {
     setShowAddDialog(true);
   };
 
-  const handleCalendarSelect = (selection: DateSelectArg) => {
-    const startDate = format(selection.start, "yyyy-MM-dd");
-    const startTime = format(selection.start, "HH:mm");
-    const minutes = Math.max(
-      15,
-      Math.round((selection.end.getTime() - selection.start.getTime()) / (1000 * 60)),
-    );
-
-    setSelectedDate(startDate);
-    openAddDialog({ date: startDate, startTime, duration: minutes });
-    selection.view.calendar.unselect();
+  const resetEditDialog = (booking: Booking) => {
+    const duration = Math.max(5, getDurationMinutes(booking.startTime, booking.endTime));
+    setEditForm({
+      clientName: booking.userName,
+      clientPhone: booking.userPhone ?? "",
+      serviceId: booking.serviceId,
+      date: booking.date,
+      startTime: booking.startTime,
+      duration,
+    });
+    setEditError(null);
   };
+
+  const openEditDialog = (booking: Booking) => {
+    resetEditDialog(booking);
+    setShowEditDialog(true);
+  };
+
 
   const handleEventClick = (click: EventClickArg) => {
     if (click.event.display === "background") return;
@@ -376,6 +530,70 @@ const ProviderSchedule = () => {
     if (click.event.start) {
       setSelectedDate(format(click.event.start, "yyyy-MM-dd"));
     }
+  };
+
+  const handleEventDrop = (dropInfo: EventDropArg) => {
+    if (dropInfo.event.display === "background") {
+      dropInfo.revert();
+      return;
+    }
+
+    const booking = providerBookings.find((item) => item.id === dropInfo.event.id);
+    if (!booking || booking.status === "CANCELLED" || booking.status === "COMPLETED") {
+      dropInfo.revert();
+      return;
+    }
+
+    const start = dropInfo.event.start;
+    const end = dropInfo.event.end;
+    if (!start || !end) {
+      dropInfo.revert();
+      return;
+    }
+
+    const date = format(start, "yyyy-MM-dd");
+    const startTime = format(start, "HH:mm");
+    const endTime = format(end, "HH:mm");
+    const endDate = format(end, "yyyy-MM-dd");
+
+    const validationError = validateBookingMove(booking, date, startTime, endTime, endDate);
+    if (validationError) {
+      setMoveError(validationError);
+      dropInfo.revert();
+      return;
+    }
+
+    dropInfo.revert();
+    setMoveError(null);
+    setPendingMove({ bookingId: booking.id, date, startTime, endTime });
+  };
+
+  const handleEventMount = (arg: EventMountArg) => {
+    if (arg.event.display === "background") return;
+    const el = arg.el as HTMLElement;
+    const parent = el.closest(".fc-timegrid-event-harness, .fc-timegrid-event-harness-inset");
+
+    const onEnter = () => {
+      el.classList.add("schedule-event-hovered");
+      parent?.classList.add("schedule-event-harness-hovered");
+    };
+    const onLeave = () => {
+      el.classList.remove("schedule-event-hovered");
+      parent?.classList.remove("schedule-event-harness-hovered");
+    };
+
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+    (el as any).__scheduleHoverHandlers = { onEnter, onLeave };
+  };
+
+  const handleEventUnmount = (arg: EventMountArg) => {
+    const el = arg.el as HTMLElement & { __scheduleHoverHandlers?: { onEnter: () => void; onLeave: () => void } };
+    const handlers = el.__scheduleHoverHandlers;
+    if (!handlers) return;
+    el.removeEventListener("mouseenter", handlers.onEnter);
+    el.removeEventListener("mouseleave", handlers.onLeave);
+    delete el.__scheduleHoverHandlers;
   };
 
   const validateAddBooking = () => {
@@ -412,6 +630,88 @@ const ProviderSchedule = () => {
     const overlapWithTimeoff = providerTimeoff.some((timeoff) => {
       if (timeoff.date !== bookingForm.date) return false;
       return rangesOverlap(bookingForm.startTime, computed.endTime, timeoff.startTime, timeoff.endTime);
+    });
+
+    if (overlapWithTimeoff) {
+      return "This slot overlaps with a time-off block.";
+    }
+
+    return null;
+  };
+
+  const handleEditServiceChange = (serviceId: string) => {
+    const service = providerServices.find((item) => item.id === serviceId);
+    setEditForm((prev) => ({
+      ...prev,
+      serviceId,
+      duration: service ? service.duration + getEffectiveServiceBufferMinutes(service, currentProvider) : prev.duration,
+    }));
+    setEditError(null);
+  };
+
+  const validateEditBooking = (booking: Booking) => {
+    if (!editForm.clientName.trim()) return "Client name is required.";
+    if (!editForm.date) return "Date is required.";
+    if (isBefore(new Date(`${editForm.date}T00:00:00`), startOfDay(new Date()))) {
+      return "Past dates are not allowed.";
+    }
+    if (!editForm.startTime) return "Start time is required.";
+    if (editForm.duration < 5) return "Duration must be at least 5 minutes.";
+    if (!editForm.serviceId) return "Select a service.";
+
+    const computed = getEndTime(editForm.startTime, editForm.duration);
+    if (computed.crossesMidnight) return "Bookings cannot cross midnight.";
+
+    const overlapWithBooking = isHourOccupied(
+      providerId,
+      editForm.date,
+      editForm.startTime,
+      computed.endTime,
+      state.bookings,
+      booking.id,
+    );
+
+    if (overlapWithBooking) {
+      return "This slot overlaps with an existing booking.";
+    }
+
+    const overlapWithTimeoff = providerTimeoff.some((timeoff) => {
+      if (timeoff.date !== editForm.date) return false;
+      return rangesOverlap(editForm.startTime, computed.endTime, timeoff.startTime, timeoff.endTime);
+    });
+
+    if (overlapWithTimeoff) {
+      return "This slot overlaps with a time-off block.";
+    }
+
+    return null;
+  };
+
+  const validateBookingMove = (booking: Booking, date: string, startTime: string, endTime: string, endDate: string) => {
+    if (isBefore(new Date(`${date}T00:00:00`), startOfDay(new Date()))) {
+      return "Past dates are not allowed.";
+    }
+
+    if (endDate !== date) {
+      return "Bookings cannot cross midnight.";
+    }
+
+    const overlapWithBooking = isHourOccupied(
+      providerId,
+      date,
+      startTime,
+      endTime,
+      state.bookings,
+      booking.id,
+    );
+
+    if (overlapWithBooking) {
+      return "This slot overlaps with an existing booking.";
+    }
+
+    const overlapWithTimeoff = providerTimeoff.some((timeoff) => {
+      if (timeoff.date !== date) return false;
+      return rangesOverlap(startTime, endTime, timeoff.startTime, timeoff.endTime);
     });
 
     if (overlapWithTimeoff) {
@@ -506,6 +806,8 @@ const ProviderSchedule = () => {
 
   const completeSelectedBooking = () => {
     if (!selectedBooking || selectedBooking.status !== "CONFIRMED" || !currentProvider) return;
+    const bookingEndMs = toDateTimeMs(selectedBooking.date, selectedBooking.endTime);
+    if (bookingEndMs === null || Date.now() < bookingEndMs) return;
 
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "COMPLETED" } });
 
@@ -527,16 +829,72 @@ const ProviderSchedule = () => {
     }
   };
 
-  const deleteSelectedBooking = () => {
+  const cancelSelectedBooking = () => {
+    if (!selectedBooking || selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED" || !currentProvider) return;
+
+    dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "CANCELLED" } });
+
+    if (!selectedBooking.userId.startsWith("guest-")) {
+      const serviceName = servicesById.get(selectedBooking.serviceId)?.title ?? "service";
+      dispatch({
+        type: "ADD_NOTIFICATION",
+        payload: {
+          id: generateId(),
+          userId: selectedBooking.userId,
+          type: "booking_success",
+          title: "Booking Cancelled",
+          message: `${currentProvider.name} marked your ${serviceName} booking on ${formatDateLabel(selectedBooking.date)} at ${selectedBooking.startTime} as not taking place.`,
+          read: false,
+          createdAt: new Date().toISOString(),
+          linkTo: "/dashboard",
+        },
+      });
+    }
+  };
+
+  const saveEditedBooking = () => {
     if (!selectedBooking) return;
-    dispatch({ type: "DELETE_BOOKING", payload: selectedBooking.id });
-    setSelectedBookingId(null);
+    if (selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED") return;
+
+    const validationError = validateEditBooking(selectedBooking);
+    if (validationError) {
+      setEditError(validationError);
+      return;
+    }
+
+    const { endTime } = getEndTime(editForm.startTime, editForm.duration);
+
+    dispatch({
+      type: "UPDATE_BOOKING",
+      payload: {
+        id: selectedBooking.id,
+        userName: editForm.clientName.trim(),
+        userPhone: editForm.clientPhone.trim() || undefined,
+        serviceId: editForm.serviceId,
+        date: editForm.date,
+        startTime: editForm.startTime,
+        endTime,
+      },
+    });
+
+    setSelectedDate(editForm.date);
+    setShowEditDialog(false);
+    setEditError(null);
   };
 
   const { endTime: previewEndTime, crossesMidnight: previewCrossesMidnight } = getEndTime(
     bookingForm.startTime,
     bookingForm.duration,
   );
+  const { endTime: editPreviewEndTime, crossesMidnight: editPreviewCrossesMidnight } = getEndTime(
+    editForm.startTime,
+    editForm.duration,
+  );
+  const canMarkSelectedComplete = (() => {
+    if (!selectedBooking || selectedBooking.status !== "CONFIRMED") return false;
+    const bookingEndMs = toDateTimeMs(selectedBooking.date, selectedBooking.endTime);
+    return bookingEndMs !== null && Date.now() >= bookingEndMs;
+  })();
 
   if (!currentProvider) return null;
 
@@ -602,8 +960,14 @@ const ProviderSchedule = () => {
                 {hiddenBookingsCount} booking{hiddenBookingsCount === 1 ? "" : "s"} hidden due invalid date/time format.
               </div>
             )}
+            {moveError && (
+              <div className="mx-1 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{moveError}</span>
+              </div>
+            )}
 
-            <div className="provider-calendar min-h-[540px] overflow-hidden rounded-xl border">
+            <div className="provider-calendar min-h-[540px] overflow-visible rounded-xl border">
               <FullCalendar
                 ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
@@ -624,16 +988,21 @@ const ProviderSchedule = () => {
                     : undefined
                 }
                 events={allEvents}
-                selectable
-                selectMirror
-                select={handleCalendarSelect}
+                selectable={false}
                 eventClick={handleEventClick}
+                eventDrop={handleEventDrop}
+                eventDidMount={handleEventMount}
+                eventWillUnmount={handleEventUnmount}
+                editable
+                eventStartEditable
+                eventDurationEditable={false}
                 slotMinTime={calendarHourRange.min}
                 slotMaxTime={calendarHourRange.max}
                 scrollTime={calendarHourRange.min}
                 allDaySlot={false}
                 slotDuration="00:30:00"
                 slotLabelInterval="01:00:00"
+                snapDuration="00:30:00"
                 dayHeaderFormat={{ weekday: "short", day: "numeric" }}
                 eventTimeFormat={{ hour: "numeric", minute: "2-digit", meridiem: "short" }}
                 slotLabelFormat={{ hour: "numeric", minute: "2-digit", hour12: true }}
@@ -647,6 +1016,8 @@ const ProviderSchedule = () => {
                     <div className="schedule-event-card">
                       <p className="schedule-event-title">{data.userName}</p>
                       <p className="schedule-event-subtitle">{data.serviceName}</p>
+                      <p className="schedule-event-time">{arg.timeText || "Time not set"}</p>
+                      <p className="schedule-event-status">{data.status}</p>
                     </div>
                   );
                 }}
@@ -734,6 +1105,16 @@ const ProviderSchedule = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-2">
+                    {selectedBooking.status !== "CANCELLED" && selectedBooking.status !== "COMPLETED" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        onClick={() => openEditDialog(selectedBooking)}
+                      >
+                        Edit
+                      </Button>
+                    )}
                     {selectedBooking.status === "PENDING" && (
                       <Button size="sm" className="gap-1.5" onClick={confirmSelectedBooking}>
                         <Check className="h-3.5 w-3.5" />
@@ -746,6 +1127,8 @@ const ProviderSchedule = () => {
                         variant="outline"
                         className="gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
                         onClick={completeSelectedBooking}
+                        disabled={!canMarkSelectedComplete}
+                        title={`Can be completed at ${selectedBooking.endTime} or later`}
                       >
                         <CircleCheck className="h-3.5 w-3.5" />
                         Mark Completed
@@ -755,10 +1138,11 @@ const ProviderSchedule = () => {
                       size="sm"
                       variant="outline"
                       className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={deleteSelectedBooking}
+                      onClick={cancelSelectedBooking}
+                      disabled={selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED"}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
+                      <XCircle className="h-3.5 w-3.5" />
+                      Cancel
                     </Button>
                   </div>
                 </div>
@@ -773,6 +1157,9 @@ const ProviderSchedule = () => {
         onOpenChange={(open) => {
           setShowAddDialog(open);
           if (!open) setAddError(null);
+          if (!open) {
+            updateSelectionPreview(null);
+          }
         }}
       >
         <DialogContent className="sm:max-w-[520px]">
@@ -956,6 +1343,198 @@ const ProviderSchedule = () => {
               Cancel
             </Button>
             <Button onClick={addManualBooking}>Save Booking</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showEditDialog}
+        onOpenChange={(open) => {
+          setShowEditDialog(open);
+          if (!open) setEditError(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Edit Booking</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Client Name</Label>
+              <Input
+                value={editForm.clientName}
+                placeholder="Client name"
+                onChange={(event) => setEditForm((prev) => ({ ...prev, clientName: event.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Phone Number</Label>
+              <Input
+                type="tel"
+                value={editForm.clientPhone}
+                placeholder="+40 700 000 000"
+                onChange={(event) => setEditForm((prev) => ({ ...prev, clientPhone: event.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Service</Label>
+              {providerServices.length > 0 ? (
+                <Select value={editForm.serviceId} onValueChange={handleEditServiceChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {providerServices.map((service) => (
+                      <SelectItem key={service.id} value={service.id}>
+                        {service.title} ({service.duration} min + {getEffectiveServiceBufferMinutes(service, currentProvider)} min buffer)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="rounded-xl border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                  No services available to select.
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Date</Label>
+              <div className="flex gap-2">
+                {[0, 1, 2].map((offset) => {
+                  const date = addDays(new Date(), offset);
+                  const key = format(date, "yyyy-MM-dd");
+                  const label = offset === 0 ? "Today" : offset === 1 ? "Tomorrow" : format(date, "EEE d MMM");
+                  return (
+                    <Button
+                      key={key}
+                      type="button"
+                      size="sm"
+                      variant={editForm.date === key ? "default" : "outline"}
+                      className="flex-1 text-xs"
+                      onClick={() => setEditForm((prev) => ({ ...prev, date: key }))}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {editForm.date ? format(new Date(`${editForm.date}T00:00:00`), "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editForm.date ? new Date(`${editForm.date}T00:00:00`) : undefined}
+                    onSelect={(date) => {
+                      if (!date) return;
+                      setEditForm((prev) => ({ ...prev, date: format(date, "yyyy-MM-dd") }));
+                    }}
+                    disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                    initialFocus
+                    className={cn("p-3")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <Input
+                  type="time"
+                  value={editForm.startTime}
+                  onChange={(event) => setEditForm((prev) => ({ ...prev, startTime: event.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Duration (min)</Label>
+                <Input
+                  type="number"
+                  min={5}
+                  step={5}
+                  value={editForm.duration}
+                  onChange={(event) =>
+                    setEditForm((prev) => ({ ...prev, duration: Number(event.target.value) || 5 }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Ends at {editPreviewEndTime}
+              {editPreviewCrossesMidnight ? " (next day - not allowed)" : ""}
+            </div>
+
+            {editError && (
+              <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{editError}</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveEditedBooking}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!pendingMove}
+        onOpenChange={(open) => {
+          if (!open) setPendingMove(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Time Change</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>Do you want to update this booking to the new time?</p>
+            {pendingMove && (
+              <div className="rounded-xl border bg-muted/30 px-3 py-2 text-xs text-foreground">
+                <p className="font-medium">New schedule</p>
+                <p className="mt-1">{formatDateLabel(pendingMove.date)} · {pendingMove.startTime} - {pendingMove.endTime}</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingMove(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!pendingMove) return;
+                dispatch({
+                  type: "UPDATE_BOOKING",
+                  payload: {
+                    id: pendingMove.bookingId,
+                    date: pendingMove.date,
+                    startTime: pendingMove.startTime,
+                    endTime: pendingMove.endTime,
+                  },
+                });
+                setSelectedDate(pendingMove.date);
+                setSelectedBookingId(pendingMove.bookingId);
+                setPendingMove(null);
+              }}
+            >
+              Confirm
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

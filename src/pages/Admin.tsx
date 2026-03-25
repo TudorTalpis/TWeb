@@ -1,10 +1,10 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+﻿import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 
-const CONTAINER = "max-w-6xl mx-auto px-6";
+const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 
 type Business = {
   id: string;
@@ -31,7 +31,7 @@ const PENDING: Business[] = [
 ];
 
 const ACTIVE: Business[] = [
-  { id: "a1", name: "Lotus Massage", owner: "Renée Young", status: "approved", rating: 4.7, reports: 0 },
+  { id: "a1", name: "Lotus Massage", owner: "Renee Young", status: "approved", rating: 4.7, reports: 0 },
   { id: "a2", name: "Seaside Restaurant", owner: "Carlos M.", status: "restricted", rating: 4.1, reports: 3 },
   { id: "a3", name: "Glow Beauty", owner: "Priya Singh", status: "approved", rating: 4.9, reports: 1 },
 ];
@@ -44,11 +44,11 @@ const REQUESTS: OwnerRequest[] = [
 function StatusBadge({ status }: { status: Business["status"] }) {
   switch (status) {
     case "pending":
-      return <Badge variant="outline" className="text-slate-700">Pending</Badge>;
+      return <Badge className="bg-warning/10 text-warning">Pending</Badge>;
     case "approved":
-      return <Badge className="bg-emerald-100 text-emerald-800">Approved</Badge>;
+      return <Badge className="bg-success/10 text-success">Approved</Badge>;
     case "restricted":
-      return <Badge className="bg-yellow-100 text-yellow-800">Restricted</Badge>;
+      return <Badge className="bg-accent/10 text-accent">Restricted</Badge>;
     case "rejected":
       return <Badge className="bg-destructive/10 text-destructive">Rejected</Badge>;
     default:
@@ -58,153 +58,149 @@ function StatusBadge({ status }: { status: Business["status"] }) {
 
 export default function Admin(): JSX.Element {
   return (
-    <main className="bg-white text-slate-900">
-      <header className={`${CONTAINER} py-10`}>
-        <div className="max-w-4xl">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="mt-2 text-slate-600">Manage businesses, review submissions and handle owner requests.</p>
-        </div>
-      </header>
+    <AdminPanelLayout>
+      <div className="space-y-6">
+        <section className="space-y-2">
+          <h2 className="font-display text-2xl font-bold">Admin Dashboard</h2>
+          <p className="text-sm text-muted-foreground">Manage businesses, review submissions, and handle owner requests.</p>
+        </section>
 
-      <section className="border-t">
-        <div className={`${CONTAINER} py-10`}> 
-          <article aria-labelledby="pending-heading">
-            <div className="flex items-center justify-between">
-              <h2 id="pending-heading" className="text-xl font-semibold">Pending Business Requests</h2>
-              <p className="text-sm text-slate-500">Review and take action on newly submitted businesses.</p>
+        <section className={PANEL_CLASS}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Pending Business Requests</h3>
+              <p className="text-xs text-muted-foreground">Review and take action on newly submitted businesses.</p>
             </div>
+          </div>
 
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[720px] divide-y table-auto">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Business</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Owner</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Submitted</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Status</th>
-                    <th scope="col" className="px-4 py-3 text-right text-sm font-medium text-slate-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {PENDING.map((b) => (
-                    <tr key={b.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={`https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop`} alt={`${b.name} image`} />
-                            <AvatarFallback>{b.name.split(" ")[0][0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium text-slate-900">{b.name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-sm text-slate-700">{b.owner}</td>
-                      <td className="px-4 py-4 text-sm text-slate-700">{b.submittedAt}</td>
-                      <td className="px-4 py-4"> <StatusBadge status={b.status} /> </td>
-                      <td className="px-4 py-4 text-right flex items-center justify-end gap-2">
-                        <Button size="sm" className="px-3">Approve</Button>
-                        <Button variant="destructive" size="sm" className="px-3">Reject</Button>
-                        <Button variant="outline" size="sm" className="px-3">Edit</Button>
-                        <Button variant="destructive" size="sm" className="px-3">Delete</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="bg-slate-50">
-        <div className={`${CONTAINER} py-10`}> 
-          <article aria-labelledby="active-heading">
-            <div className="flex items-center justify-between">
-              <h2 id="active-heading" className="text-xl font-semibold">Active Businesses</h2>
-              <p className="text-sm text-slate-500">Overview of approved businesses and reports.</p>
-            </div>
-
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[720px] divide-y table-auto">
-                <thead className="bg-white">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Business</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Owner</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Rating</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Reports</th>
-                    <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-slate-600">Status</th>
-                    <th scope="col" className="px-4 py-3 text-right text-sm font-medium text-slate-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {ACTIVE.map((b) => (
-                    <tr key={b.id} className="hover:bg-white">
-                      <td className="px-4 py-4">
-                        <div className="font-medium text-slate-900">{b.name}</div>
-                      </td>
-                      <td className="px-4 py-4 text-sm text-slate-700">{b.owner}</td>
-                      <td className="px-4 py-4 text-sm text-slate-700">{b.rating?.toFixed(1)}</td>
-                      <td className="px-4 py-4 text-sm text-slate-700">{b.reports ?? 0}</td>
-                      <td className="px-4 py-4"> <StatusBadge status={b.status} /> </td>
-                      <td className="px-4 py-4 text-right flex items-center justify-end gap-2">
-                        {b.status === "restricted" ? (
-                          <Button variant="secondary" size="sm" className="px-3">Remove Restriction</Button>
-                        ) : (
-                          <Button variant="destructive" size="sm" className="px-3">Restrict</Button>
-                        )}
-                        <Button variant="outline" size="sm" className="px-3">Edit</Button>
-                        <Button variant="destructive" size="sm" className="px-3">Delete</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section>
-        <div className={`${CONTAINER} py-10`}> 
-          <article aria-labelledby="owners-heading">
-            <div className="flex items-center justify-between">
-              <h2 id="owners-heading" className="text-xl font-semibold">Owner Verification Requests</h2>
-              <p className="text-sm text-slate-500">Approve or reject requests to become verified business owners.</p>
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {REQUESTS.map((r) => (
-                <Card key={r.id} className="rounded-2xl">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={`https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop`} alt={`${r.name} avatar`} />
-                          <AvatarFallback>{r.name.split(" ")[0][0]}</AvatarFallback>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs text-muted-foreground">
+                  <th className="pb-3 font-medium">Business</th>
+                  <th className="pb-3 font-medium">Owner</th>
+                  <th className="pb-3 font-medium">Submitted</th>
+                  <th className="pb-3 font-medium">Status</th>
+                  <th className="pb-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-xs">
+                {PENDING.map((b) => (
+                  <tr key={b.id} className="text-muted-foreground">
+                    <td className="py-3">
+                      <div className="flex items-center gap-3 text-foreground">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop" alt={`${b.name} image`} />
+                          <AvatarFallback>{b.name.split(" ")[0][0]}</AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-medium text-slate-900">{r.name}</div>
-                          <div className="text-xs text-slate-500">{r.email}</div>
-                        </div>
+                        <div className="font-medium">{b.name}</div>
                       </div>
-                      <div className="text-sm text-slate-500">{r.requestedAt}</div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-3 text-sm text-slate-700">Requested business: <span className="font-medium">{r.businessName}</span></div>
-                    <div className="flex gap-2">
-                      <Button size="sm">Approve</Button>
-                      <Button variant="destructive" size="sm">Reject</Button>
-                      <Button variant="outline" size="sm">View Details</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </td>
+                    <td className="py-3">{b.owner}</td>
+                    <td className="py-3">{b.submittedAt}</td>
+                    <td className="py-3"><StatusBadge status={b.status} /></td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button size="sm" className="h-7 px-3 text-[10px]">Approve</Button>
+                        <Button variant="destructive" size="sm" className="h-7 px-3 text-[10px]">Reject</Button>
+                        <Button variant="outline" size="sm" className="h-7 px-3 text-[10px]">Edit</Button>
+                        <Button variant="destructive" size="sm" className="h-7 px-3 text-[10px]">Delete</Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className={PANEL_CLASS}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Active Businesses</h3>
+              <p className="text-xs text-muted-foreground">Overview of approved businesses and reports.</p>
             </div>
-          </article>
-        </div>
-      </section>
-    </main>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs text-muted-foreground">
+                  <th className="pb-3 font-medium">Business</th>
+                  <th className="pb-3 font-medium">Owner</th>
+                  <th className="pb-3 font-medium">Rating</th>
+                  <th className="pb-3 font-medium">Reports</th>
+                  <th className="pb-3 font-medium">Status</th>
+                  <th className="pb-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-xs">
+                {ACTIVE.map((b) => (
+                  <tr key={b.id} className="text-muted-foreground">
+                    <td className="py-3 text-foreground font-medium">{b.name}</td>
+                    <td className="py-3">{b.owner}</td>
+                    <td className="py-3">{b.rating?.toFixed(1)}</td>
+                    <td className="py-3">{b.reports ?? 0}</td>
+                    <td className="py-3"><StatusBadge status={b.status} /></td>
+                    <td className="py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {b.status === "restricted" ? (
+                          <Button variant="secondary" size="sm" className="h-7 px-3 text-[10px]">Remove Restriction</Button>
+                        ) : (
+                          <Button variant="destructive" size="sm" className="h-7 px-3 text-[10px]">Restrict</Button>
+                        )}
+                        <Button variant="outline" size="sm" className="h-7 px-3 text-[10px]">Edit</Button>
+                        <Button variant="destructive" size="sm" className="h-7 px-3 text-[10px]">Delete</Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className={PANEL_CLASS}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Owner Verification Requests</h3>
+              <p className="text-xs text-muted-foreground">Approve or reject requests to become verified business owners.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {REQUESTS.map((r) => (
+              <Card key={r.id} className="rounded-2xl border border-border/60 bg-background/40 shadow-card">
+                <CardHeader className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" alt={`${r.name} avatar`} />
+                        <AvatarFallback>{r.name.split(" ")[0][0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-foreground">{r.name}</div>
+                        <div className="text-xs text-muted-foreground">{r.email}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">{r.requestedAt}</div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="text-sm text-muted-foreground">
+                    Requested business: <span className="font-medium text-foreground">{r.businessName}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" className="h-7 px-3 text-[10px]">Approve</Button>
+                    <Button variant="destructive" size="sm" className="h-7 px-3 text-[10px]">Reject</Button>
+                    <Button variant="outline" size="sm" className="h-7 px-3 text-[10px]">View Details</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      </div>
+    </AdminPanelLayout>
   );
 }
