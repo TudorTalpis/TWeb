@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, Trash2, Plus, Star, Ban, Award, Megaphone, Edit2, X, Upload, ImagePlus, Camera } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, Star, Ban, Award, Megaphone, Edit2, X, Upload, ImagePlus, Camera, Check } from "lucide-react";
+import { createCategoryFromName, findCategoryByName, getCategoryNames } from "@/lib/categories";
 import { generateId } from "@/lib/storage";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { toast } from "@/hooks/use-toast";
@@ -31,7 +32,7 @@ const AdminProviderDetail = () => {
     description: provider?.description ?? "",
     phone: provider?.phone ?? "",
     location: provider?.location ?? "",
-    categoryId: provider?.categoryId ?? "",
+    categoryIds: provider?.categoryIds ?? [],
     avatar: provider?.avatar ?? "",
     coverPhoto: provider?.coverPhoto ?? "",
     galleryPhotos: provider?.galleryPhotos ?? [] as string[],
@@ -59,7 +60,47 @@ const AdminProviderDetail = () => {
     );
   }
 
-  const category = state.categories.find((c) => c.id === provider.categoryId);
+  const categoryNames = getCategoryNames(state.categories, provider.categoryIds);
+  const pendingCategoryNames = provider.pendingCategoryNames ?? [];
+
+  const toggleProfileCategory = (id: string) => {
+    setProfileForm((prev) => ({
+      ...prev,
+      categoryIds: prev.categoryIds.includes(id)
+        ? prev.categoryIds.filter((catId) => catId !== id)
+        : [...prev.categoryIds, id],
+    }));
+  };
+
+  const approvePendingCategories = () => {
+    if (pendingCategoryNames.length === 0) return;
+
+    let nextCategories = [...state.categories];
+    const approvedCategoryIds = [...provider.categoryIds];
+
+    pendingCategoryNames.forEach((name) => {
+      const existing = findCategoryByName(nextCategories, name);
+      const category = existing ?? createCategoryFromName(name, nextCategories);
+      if (!existing) {
+        dispatch({ type: "ADD_CATEGORY", payload: category });
+        nextCategories = [...nextCategories, category];
+      }
+      if (!approvedCategoryIds.includes(category.id)) {
+        approvedCategoryIds.push(category.id);
+      }
+    });
+
+    dispatch({
+      type: "UPDATE_PROVIDER_PROFILE",
+      payload: {
+        id: provider.id,
+        categoryIds: approvedCategoryIds,
+        pendingCategoryNames: [],
+      },
+    });
+
+    toast({ title: "Pending categories approved" });
+  };
 
   const handleFileUpload = async (file: File, target: "avatar" | "cover") => {
     const base64 = await fileToBase64(file);
@@ -101,7 +142,7 @@ const AdminProviderDetail = () => {
       price: 0,
       duration: 60,
       bufferMinutes: null,
-      categoryId: provider.categoryId,
+      categoryId: provider.categoryIds[0] ?? "",
       providerId: provider.id,
     });
   };
@@ -118,7 +159,7 @@ const AdminProviderDetail = () => {
           price: serviceForm.price || 0,
           duration: serviceForm.duration || 60,
           bufferMinutes: serviceForm.bufferMinutes ?? null,
-          categoryId: serviceForm.categoryId || provider.categoryId,
+          categoryId: serviceForm.categoryId || provider.categoryIds[0] || "",
         },
       });
       toast({ title: "Service added" });
@@ -202,16 +243,20 @@ const AdminProviderDetail = () => {
                           <Input value={profileForm.phone} onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })} placeholder="Phone" />
                           <Input value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} placeholder="Location" />
                         </div>
-                        <Select value={profileForm.categoryId} onValueChange={(v) => setProfileForm({ ...profileForm, categoryId: v })}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
+                        <div>
+                          <p className="text-sm font-medium mb-2">Categories</p>
+                          <div className="space-y-2">
                             {state.categories.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                              <label key={c.id} className="flex items-center gap-2 text-sm">
+                                <Checkbox
+                                  checked={profileForm.categoryIds.includes(c.id)}
+                                  onCheckedChange={() => toggleProfileCategory(c.id)}
+                                />
+                                <span>{c.name}</span>
+                              </label>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </div>
+                        </div>
 
                         {/* Gallery management */}
                         <div className="space-y-2">
@@ -258,7 +303,10 @@ const AdminProviderDetail = () => {
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{provider.description}</p>
                       <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                        {category && <span>{category.name}</span>}
+                        {categoryNames.length > 0 && <span>{categoryNames.join(", ")}</span>}
+                        {pendingCategoryNames.length > 0 && (
+                          <span className="text-warning">Pending: {pendingCategoryNames.join(", ")}</span>
+                        )}
                         <span>{provider.location}</span>
                         <span>{provider.phone}</span>
                         <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-warning text-warning" /> {provider.rating} ({provider.reviewCount})</span>
@@ -267,6 +315,11 @@ const AdminProviderDetail = () => {
                 )}
               </div>
               <div className="flex gap-1">
+                {pendingCategoryNames.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={approvePendingCategories} className="gap-1 text-xs">
+                    <Check className="h-3.5 w-3.5" /> Approve Categories ({pendingCategoryNames.length})
+                  </Button>
+                )}
                 {!editingProfile && (
                     <Button variant="outline" size="sm" onClick={() => {
                       setProfileForm({
@@ -274,7 +327,7 @@ const AdminProviderDetail = () => {
                         description: provider.description,
                         phone: provider.phone,
                         location: provider.location,
-                        categoryId: provider.categoryId,
+                        categoryIds: [...provider.categoryIds],
                         avatar: provider.avatar,
                         coverPhoto: provider.coverPhoto,
                         galleryPhotos: [...provider.galleryPhotos],

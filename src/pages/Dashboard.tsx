@@ -36,6 +36,8 @@ import { generateId } from "@/lib/storage";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
 import { cn } from "@/lib/utils";
+import { toLocalDateKey } from "@/lib/date";
+import type { Booking } from "@/types";
 
 const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 const TOOLTIP_CLASS = "rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur";
@@ -88,7 +90,7 @@ const Dashboard = () => {
   const userId = state.session.userId;
   const bookings = state.bookings.filter((b) => b.userId === userId);
   const reviews = state.reviews.filter((r) => r.userId === userId);
-  const today = new Date().toISOString().split("T")[0];
+  const today = toLocalDateKey(new Date());
 
   const pending = bookings.filter((b) => b.status === "PENDING");
   const upcoming = bookings.filter((b) => b.date >= today && b.status === "CONFIRMED");
@@ -224,7 +226,7 @@ const Dashboard = () => {
     setRating(5);
   };
 
-  const BookingCard = ({ booking, canReview }: { booking: any; canReview?: boolean }) => {
+  const BookingCard = ({ booking, canReview }: { booking: Booking; canReview?: boolean }) => {
     const provider = state.providerProfiles.find((p) => p.id === booking.providerId);
     const service = state.services.find((s) => s.id === booking.serviceId);
     const hasReview = reviews.some((r) => r.bookingId === booking.id);

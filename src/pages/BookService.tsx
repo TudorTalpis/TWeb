@@ -4,12 +4,12 @@ import { ArrowLeft, Calendar as CalendarIcon, Check, Clock, User, ChevronLeft, C
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
 import { generateSlots, formatDate, isHourOccupied, type TimeSlot } from "@/lib/booking";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { generateId } from "@/lib/storage";
+import { toLocalDateKey } from "@/lib/date";
 import {
   Dialog,
   DialogContent,
@@ -44,14 +44,13 @@ const BookService = () => {
   const providerTimeoff = state.timeoff.filter((t) => t.providerId === providerId);
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = toLocalDateKey(today);
   const [calMonth, setCalMonth] = useState(today.getMonth());
   const [calYear, setCalYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [confirmedBookingId, setConfirmedBookingId] = useState<string | null>(null);
   const [bookingWasAutoConfirmed, setBookingWasAutoConfirmed] = useState(false);
   const [slotError, setSlotError] = useState("");
 
@@ -82,6 +81,14 @@ const BookService = () => {
         <div className="mx-auto max-w-6xl px-4 py-20 text-center">
           <p className="text-muted-foreground text-sm">Invalid booking link.</p>
         </div>
+    );
+  }
+
+  if (provider.blocked) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
+        <p className="text-muted-foreground text-sm">This provider is currently unavailable.</p>
+      </div>
     );
   }
 
@@ -132,7 +139,6 @@ const BookService = () => {
     setBookingWasAutoConfirmed(autoConfirm);
 
     const bookingId = generateId();
-    setConfirmedBookingId(bookingId);
     dispatch({
       type: "ADD_BOOKING",
       payload: {
@@ -181,13 +187,13 @@ const BookService = () => {
 
   const isDateSelectable = (day: number) => {
     const d = new Date(calYear, calMonth, day);
-    const dStr = d.toISOString().split("T")[0];
-    return dStr >= todayStr && dStr <= maxDate.toISOString().split("T")[0];
+    const dStr = toLocalDateKey(d);
+    return dStr >= todayStr && dStr <= toLocalDateKey(maxDate);
   };
 
   const toDateStr = (day: number) => {
     const d = new Date(calYear, calMonth, day);
-    return d.toISOString().split("T")[0];
+    return toLocalDateKey(d);
   };
 
   const prevMonth = () => {

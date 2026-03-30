@@ -1,16 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { CategoryMultiSelect } from "@/components/CategoryMultiSelect";
 import { useAppStore } from "@/store/AppContext";
 import { Check, Camera, ImagePlus, X, Link as LinkIcon, MapPin, Phone, Upload, Plus, Trash2 } from "lucide-react";
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { fileToBase64 } from "@/lib/fileToBase64";
 import { generateId } from "@/lib/storage";
+import { findCategoryByName, normalizeCategory } from "@/lib/categories";
 import type { Availability } from "@/types";
+
+const PENDING_CATEGORY_PREFIX = "pending:";
 
 const emptyAvailabilityMap = (): Record<number, Availability[]> => ({
   0: [],
@@ -40,12 +44,15 @@ const ProviderProfilePage = () => {
     name: currentProvider?.name || "",
     slug: currentProvider?.slug || "",
     description: currentProvider?.description || "",
+    categoryIds: currentProvider?.categoryIds || [] as string[],
+    pendingCategoryNames: currentProvider?.pendingCategoryNames || [] as string[],
     phone: currentProvider?.phone || "",
     location: currentProvider?.location || "",
     avatar: currentProvider?.avatar || "",
     coverPhoto: currentProvider?.coverPhoto || "",
     galleryPhotos: currentProvider?.galleryPhotos || [] as string[],
   });
+  const [categoryError, setCategoryError] = useState("");
   const [availabilityByDay, setAvailabilityByDay] = useState<Record<number, Availability[]>>(() =>
     currentProvider ? buildAvailabilityMap(state.availability, currentProvider.id) : emptyAvailabilityMap()
   );
@@ -67,7 +74,55 @@ const ProviderProfilePage = () => {
     setAvailabilityByDay(buildAvailabilityMap(state.availability, currentProvider.id));
   }, [state.availability, currentProvider]);
 
+  const pendingCategoryOptions = useMemo(
+    () =>
+      form.pendingCategoryNames.map((name) => ({
+        id: `${PENDING_CATEGORY_PREFIX}${normalizeCategory(name)}`,
+        name,
+        icon: "Sparkles",
+        description: "Pending admin approval",
+        color: "primary",
+      })),
+    [form.pendingCategoryNames],
+  );
+  const categoryOptions = useMemo(() => [...state.categories, ...pendingCategoryOptions], [state.categories, pendingCategoryOptions]);
+  const selectedCategoryIds = useMemo(
+    () => [...form.categoryIds, ...pendingCategoryOptions.map((option) => option.id)],
+    [form.categoryIds, pendingCategoryOptions],
+  );
+
   if (!currentProvider) return <p className="p-8 text-center text-muted-foreground">No provider profile found.</p>;
+
+  const handleCreatePendingCategory = (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+    const existing = findCategoryByName(state.categories, trimmed);
+    if (existing) return existing.id;
+    const normalized = normalizeCategory(trimmed);
+    const pendingId = `${PENDING_CATEGORY_PREFIX}${normalized}`;
+    const alreadyPending = form.pendingCategoryNames.some((item) => normalizeCategory(item) === normalized);
+    if (!alreadyPending) {
+      setForm((prev) => ({ ...prev, pendingCategoryNames: [...prev.pendingCategoryNames, trimmed] }));
+    }
+    return pendingId;
+  };
+
+  const handleCategoriesChange = (nextIds: string[]) => {
+    const approvedIds = nextIds.filter((id) => !id.startsWith(PENDING_CATEGORY_PREFIX));
+    const pendingNames = nextIds
+      .filter((id) => id.startsWith(PENDING_CATEGORY_PREFIX))
+      .map((id) => {
+        const existingOptionName = pendingCategoryOptions.find((option) => option.id === id)?.name;
+        if (existingOptionName) return existingOptionName;
+        const normalized = id.slice(PENDING_CATEGORY_PREFIX.length);
+        return form.pendingCategoryNames.find((name) => normalizeCategory(name) === normalized) ?? normalized;
+      })
+      .filter(Boolean);
+    setForm((prev) => ({ ...prev, categoryIds: approvedIds, pendingCategoryNames: pendingNames }));
+    if (approvedIds.length > 0 || pendingNames.length > 0) {
+      setCategoryError("");
+    }
+  };
 
   const slugTaken = form.slug.trim().length > 0 &&
       form.slug.trim().toLowerCase() !== currentProvider.slug.toLowerCase() &&
@@ -168,8 +223,38 @@ const ProviderProfilePage = () => {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (slugTaken) return;
+    if (form.categoryIds.length === 0 && form.pendingCategoryNames.length === 0) {
+      setCategoryError("Add at least one category.");
+      return;
+    }
+
+    const existingPending = new Set((currentProvider.pendingCategoryNames ?? []).map((name) => normalizeCategory(name)));
+    const newlyProposed = form.pendingCategoryNames.filter((name) => !existingPending.has(normalizeCategory(name)));
+
     dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: { id: currentProvider.id, ...form } });
+
+    if (newlyProposed.length > 0) {
+      state.users
+        .filter((user) => user.role === "ADMIN")
+        .forEach((admin) => {
+          dispatch({
+            type: "ADD_NOTIFICATION",
+            payload: {
+              id: generateId(),
+              userId: admin.id,
+              type: "application_submitted",
+              title: "Provider category approval needed",
+              message: `${currentProvider.name} proposed categories: ${newlyProposed.join(", ")}`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              linkTo: `/admin/providers/${currentProvider.id}`,
+            },
+          });
+        });
+    }
+
     saveSchedule();
+    setCategoryError("");
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -281,6 +366,20 @@ const ProviderProfilePage = () => {
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Description</label>
                   <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="rounded-xl min-h-[100px]" />
+                </div>
+                <div>
+                  <CategoryMultiSelect
+                    label="Categories *"
+                    placeholder="Select or propose categories"
+                    options={categoryOptions}
+                    value={selectedCategoryIds}
+                    onChange={handleCategoriesChange}
+                    onCreate={handleCreatePendingCategory}
+                  />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    New categories stay local until approved by admin.
+                  </p>
+                  {categoryError && <p className="mt-2 text-xs text-destructive">{categoryError}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

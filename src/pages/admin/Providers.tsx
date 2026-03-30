@@ -6,6 +6,7 @@ import { Star, Ban, Award, Megaphone, Eye } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { getCategoryNames } from "@/lib/categories";
 
 const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 
@@ -42,7 +43,7 @@ const AdminProviders = () => {
           ) : (
             <div className="space-y-3">
               {providers.map((provider) => {
-                const category = state.categories.find((item) => item.id === provider.categoryId);
+                const categoryNames = getCategoryNames(state.categories, provider.categoryIds);
                 return (
                   <div
                     key={provider.id}
@@ -55,6 +56,11 @@ const AdminProviders = () => {
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h4 className="text-sm font-semibold">{provider.name}</h4>
+                          {(provider.pendingCategoryNames?.length ?? 0) > 0 && (
+                            <Badge variant="outline" className="rounded-full border-warning/40 px-2 text-[10px] text-warning">
+                              Pending categories: {provider.pendingCategoryNames.length}
+                            </Badge>
+                          )}
                           {provider.featured && (
                             <Badge variant="outline" className="rounded-full border-primary/40 px-2 text-[10px] text-primary">Featured</Badge>
                           )}
@@ -66,7 +72,7 @@ const AdminProviders = () => {
                           )}
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                          {category && <span>{category.name}</span>}
+                          {categoryNames.length > 0 && <span>{categoryNames.join(", ")}</span>}
                           <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-warning text-warning" /> {provider.rating}</span>
                           <span>{provider.location}</span>
                         </div>

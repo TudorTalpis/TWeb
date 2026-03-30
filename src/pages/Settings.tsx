@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n, LANGUAGE_OPTIONS, type Language } from "@/store/I18nContext";
+import { useI18n, LANGUAGE_OPTIONS } from "@/store/I18nContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Globe, Save, Lock, Briefcase, Phone } from "lucide-react";
+import { Globe, Save, Lock, Briefcase } from "lucide-react";
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -27,7 +27,10 @@ const SettingsPage = () => {
   }
 
   const handleSave = () => {
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim()) {
+      toast({ title: "Please complete name and email." });
+      return;
+    }
 
     // Update user in state
     const updatedUsers = state.users.map((u) =>

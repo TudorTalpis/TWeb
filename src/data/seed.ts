@@ -9,6 +9,7 @@ import type {
   AppNotification,
   Review,
 } from "@/types";
+import { toLocalDateKey } from "@/lib/date";
 
 const DEMO_USERS: AppUser[] = [
   { id: "user1", name: "Alex Johnson", email: "alex@demo.com", phone: "0712 345 678", password: "Prezentare1", role: "USER", avatar: "" },
@@ -31,7 +32,7 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
   {
     id: "pp1", userId: "prov1", name: "Maria's Cleaning Co.", slug: "MariaCleaning",
     description: "Top-rated cleaning service with 5+ years of experience. Eco-friendly products and meticulous attention to detail.",
-    categoryId: "cat1", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+    categoryIds: ["cat1"], pendingCategoryNames: [], avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
     coverPhoto: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=400&fit=crop",
     galleryPhotos: [
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=300&fit=crop",
@@ -44,7 +45,7 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
   {
     id: "pp2", userId: "prov2", name: "FitLife with James", slug: "FitLifeJames",
     description: "Certified personal trainer specializing in strength training and weight loss. Customized programs for all levels.",
-    categoryId: "cat2", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+    categoryIds: ["cat2"], pendingCategoryNames: [], avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
     coverPhoto: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=400&fit=crop",
     galleryPhotos: [
       "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&h=300&fit=crop",
@@ -56,7 +57,7 @@ const DEMO_PROVIDERS: ProviderProfile[] = [
   {
     id: "pp3", userId: "prov3", name: "Sarah's Photography", slug: "SarahPhoto",
     description: "Award-winning photographer for weddings, portraits, and events. Natural light specialist.",
-    categoryId: "cat3", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
+    categoryIds: ["cat3"], pendingCategoryNames: [], avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop",
     coverPhoto: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=800&h=400&fit=crop",
     galleryPhotos: [
       "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop",
@@ -96,7 +97,7 @@ const DEMO_AVAILABILITY: Availability[] = [
 function futureDate(daysFromNow: number): string {
   const d = new Date();
   d.setDate(d.getDate() + daysFromNow);
-  return d.toISOString().split("T")[0];
+  return toLocalDateKey(d);
 }
 
 const DEMO_BOOKINGS: Booking[] = [

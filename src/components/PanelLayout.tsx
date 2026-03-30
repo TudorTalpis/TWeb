@@ -21,8 +21,8 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
       <>
         {!collapsed && (
             <div className="px-4 py-4 border-b border-border/50">
-              <p className="font-display text-xs font-bold text-foreground truncate">{title}</p>
-              {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug truncate">{subtitle}</p>}
+              <p className="font-display text-xs font-bold text-foreground">{title}</p>
+              {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
             </div>
         )}
         <nav className="flex-1 p-2 space-y-0.5">
@@ -42,7 +42,7 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
                     )}
                 >
                   <tab.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
-                  {(!collapsed || isMobile) && <span className="truncate">{tab.label}</span>}
+                  {(!collapsed || isMobile) && <span>{tab.label}</span>}
                 </Link>
             );
           })}
@@ -80,8 +80,8 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
           >
             <div className="p-4 border-b border-border/50 flex items-center justify-between">
               <div>
-                <p className="font-display text-sm font-bold truncate">{title}</p>
-                {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+                <p className="font-display text-sm font-bold">{title}</p>
+                {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
               </div>
               <button onClick={() => setMobileOpen(false)} className="text-muted-foreground hover:text-foreground rounded-lg p-1 hover:bg-secondary transition-colors">
                 <X className="h-4 w-4" />
@@ -105,7 +105,7 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
           <aside
               className={cn(
                   "sticky top-16 self-start shrink-0 border-r border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 flex flex-col",
-                  collapsed ? "w-14" : "w-48"
+                  collapsed ? "w-14" : "w-56"
               )}
               style={{ height: "calc(100vh - 4rem)" }}
           >

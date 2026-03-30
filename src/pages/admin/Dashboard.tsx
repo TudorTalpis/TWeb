@@ -204,7 +204,7 @@ const AdminDashboard = () => {
 
   const categoryShare = state.categories
     .map((category, index) => {
-      const providerCount = activeProviders.filter((provider) => provider.categoryId === category.id).length;
+      const providerCount = activeProviders.filter((provider) => provider.categoryIds.includes(category.id)).length;
       return { name: category.name, value: providerCount, color: CATEGORY_COLORS[index % CATEGORY_COLORS.length] };
     })
     .filter((item) => item.value > 0);

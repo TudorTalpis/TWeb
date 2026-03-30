@@ -1,6 +1,17 @@
+import { useState } from "react";
 import { useAppStore } from "@/store/AppContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -19,6 +30,7 @@ import { generateId } from "@/lib/storage";
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { cn } from "@/lib/utils";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { toLocalDateKey } from "@/lib/date";
 
 const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 const TOOLTIP_CLASS = "rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur";
@@ -68,11 +80,12 @@ const statusColors: Record<string, string> = {
 
 const ProviderBookings = () => {
   const { state, dispatch, currentProvider } = useAppStore();
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
   if (!currentProvider) return null;
 
   const bookings = state.bookings.filter((booking) => booking.providerId === currentProvider.id);
   const getService = (id: string) => state.services.find((service) => service.id === id);
-  const today = new Date().toISOString().split("T")[0];
+  const today = toLocalDateKey(new Date());
 
   const pendingCount = bookings.filter((booking) => booking.status === "PENDING").length;
   const confirmedCount = bookings.filter((booking) => booking.status === "CONFIRMED").length;
@@ -169,7 +182,7 @@ const ProviderBookings = () => {
   const weekLoadData = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(weekStart);
     date.setDate(weekStart.getDate() + index);
-    const dateKey = date.toISOString().split("T")[0];
+    const dateKey = toLocalDateKey(date);
 
     const dayBookings = bookings.filter((booking) => booking.date === dateKey);
 
@@ -480,7 +493,7 @@ const ProviderBookings = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleCancel(booking.id)}
+                        onClick={() => setBookingToCancel(booking.id)}
                         disabled={booking.status === "CANCELLED" || booking.status === "COMPLETED"}
                         className="h-7 gap-1 rounded-full border-destructive/30 px-3 text-[10px] text-destructive hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive"
                       >
@@ -493,6 +506,30 @@ const ProviderBookings = () => {
             </div>
           )}
         </section>
+
+        <AlertDialog open={Boolean(bookingToCancel)} onOpenChange={(open) => !open && setBookingToCancel(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel booking?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action notifies the client and marks this booking as cancelled.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep booking</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (!bookingToCancel) return;
+                  handleCancel(bookingToCancel);
+                  setBookingToCancel(null);
+                }}
+              >
+                Cancel booking
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </ProviderPanelLayout>
   );

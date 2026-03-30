@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Info } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
+import { getCategoryNames } from "@/lib/categories";
 
 const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 
@@ -13,7 +14,7 @@ const AdminApplications = () => {
   const pending = state.applications.filter((application) => application.status === "PENDING");
   const resolved = state.applications.filter((application) => application.status !== "PENDING");
 
-  const getCategory = (id: string) => state.categories.find((category) => category.id === id)?.name || id;
+  const getCategories = (ids: string[]) => getCategoryNames(state.categories, ids).join(", ") || "Unknown category";
 
   return (
     <AdminPanelLayout>
@@ -42,7 +43,7 @@ const AdminApplications = () => {
                   <h4 className="text-sm font-semibold">{application.name}</h4>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{application.description}</p>
                   <div className="mt-2 text-[11px] text-muted-foreground">
-                    {getCategory(application.categoryId)} - {application.location} - {application.phone}
+                    {getCategories(application.categoryIds)} - {application.location} - {application.phone}
                   </div>
                   <div className="mt-3 flex gap-2">
                     <Link to={`/admin/applications/${application.id}`}>

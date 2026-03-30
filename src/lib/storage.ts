@@ -14,9 +14,11 @@ const KEYS = {
   reviews: "app_reviews",
 } as const;
 
+type PersistedKey = keyof typeof KEYS;
+
 export function saveState(state: AppState) {
-  for (const [key, storageKey] of Object.entries(KEYS)) {
-    localStorage.setItem(storageKey, JSON.stringify((state as any)[key]));
+  for (const [key, storageKey] of Object.entries(KEYS) as Array<[PersistedKey, (typeof KEYS)[PersistedKey]]>) {
+    localStorage.setItem(storageKey, JSON.stringify(state[key]));
   }
 }
 
@@ -24,12 +26,14 @@ export function loadState(): Partial<AppState> | null {
   try {
     const session = localStorage.getItem(KEYS.session);
     if (!session) return null;
-    const result: any = {};
-    for (const [key, storageKey] of Object.entries(KEYS)) {
+    const result: Partial<AppState> = {};
+    for (const [key, storageKey] of Object.entries(KEYS) as Array<[PersistedKey, (typeof KEYS)[PersistedKey]]>) {
       const raw = localStorage.getItem(storageKey);
-      if (raw) result[key] = JSON.parse(raw);
+      if (raw) {
+        result[key] = JSON.parse(raw) as AppState[PersistedKey];
+      }
     }
-    return result as Partial<AppState>;
+    return result;
   } catch {
     return null;
   }

@@ -34,7 +34,8 @@ export interface ProviderProfile {
   name: string;
   slug: string; // custom URL slug e.g. "AlinaNails"
   description: string;
-  categoryId: string;
+  categoryIds: string[];
+  pendingCategoryNames: string[];
   avatar: string;
   coverPhoto: string; // cover/banner image URL
   galleryPhotos: string[]; // up to 6 portfolio photos
@@ -108,7 +109,7 @@ export interface ProviderApplication {
   name: string;
   slug: string;
   description: string;
-  categoryId: string;
+  categoryIds: string[];
   phone: string;
   location: string;
   avatar: string;
@@ -172,6 +173,10 @@ export type AppAction =
   | { type: "LOGIN"; payload: { userId: string } }
   | { type: "LOGOUT" }
   | { type: "SET_STATE"; payload: AppState }
+  | { type: "ADD_CATEGORY"; payload: Category }
+  | { type: "UPDATE_CATEGORY"; payload: Partial<Category> & { id: string } }
+  | { type: "DELETE_CATEGORY"; payload: string }
+  | { type: "UPDATE_USER"; payload: Partial<AppUser> & { id: string } }
   | { type: "UPDATE_PROVIDER_PROFILE"; payload: Partial<ProviderProfile> & { id: string } }
   | { type: "ADD_SERVICE"; payload: Service }
   | { type: "UPDATE_SERVICE"; payload: Partial<Service> & { id: string } }

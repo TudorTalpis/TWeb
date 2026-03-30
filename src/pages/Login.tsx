@@ -6,39 +6,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Zap, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import type { AppUser } from "@/types";
+
+interface LoginLocationState {
+  from?: string;
+}
 
 const Login = (): JSX.Element => {
   const { state, dispatch } = useAppStore();
   const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from || "/";
+  const from = (location.state as LoginLocationState | null)?.from || "/";
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [touched, setTouched] = useState(false);
-
-  const PASSWORD_RULES = [
-    { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 8 },
-    { id: "upper", label: t("auth.rule.upper"), test: (v: string) => /[A-Z]/.test(v) },
-    { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
-    { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 128 },
-  ];
-
-  const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched(true);
     setError("");
     const trimmedName = name.trim();
     if (!trimmedName) { setError(t("auth.error.noName")); return; }
     const loginValue = trimmedName.toLowerCase();
     const user = state.users.find(
-      (u: any) => u.name.toLowerCase() === loginValue || u.email.toLowerCase() === loginValue
+      (u) => u.name.toLowerCase() === loginValue || u.email.toLowerCase() === loginValue
     );
     if (!user || user.password !== password) { setError(t("auth.error.invalidCredentials")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
@@ -47,7 +41,7 @@ const Login = (): JSX.Element => {
   };
 
   const handleGoogleLogin = () => {
-    const user = state.users.find((u: any) => u.role === "USER");
+    const user = state.users.find((u) => u.role === "USER");
     if (user) {
       dispatch({ type: "LOGIN", payload: { userId: user.id } });
       toast.success(`Signed in with Google as ${user.name}`);
@@ -115,7 +109,7 @@ const Login = (): JSX.Element => {
                         type={showPassword ? "text" : "password"}
                         placeholder={t("auth.field.passwordPlaceholder")}
                         value={password}
-                        onChange={(e) => { setPassword(e.target.value); setError(""); setTouched(true); }}
+                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
                         className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
                         autoComplete="current-password"
                         maxLength={128}
@@ -123,27 +117,13 @@ const Login = (): JSX.Element => {
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
 
-                  {touched && password.length > 0 && (
-                      <div className="space-y-1 pt-1">
-                        {passedRules.map((rule) => (
-                            <div key={rule.id} className="flex items-center gap-2 text-xs">
-                              {rule.passed ? (
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                              ) : (
-                                  <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
-                              )}
-                              <span className={rule.passed ? "text-accent" : "text-muted-foreground"}>{rule.label}</span>
-                            </div>
-                        ))}
-                      </div>
-                  )}
                 </div>
 
                 {error && (
@@ -161,11 +141,11 @@ const Login = (): JSX.Element => {
               <div className="rounded-2xl border border-border/40 bg-secondary/30 p-4">
                 <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">{t("auth.signIn.demoAccounts")}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {state.users.map((u: any) => (
+                  {state.users.map((u: AppUser) => (
                       <button
                           key={u.id}
                           type="button"
-                          onClick={() => { setName(u.name); setPassword(u.password); setTouched(true); setError(""); }}
+                          onClick={() => { setName(u.name); setPassword(u.password); setError(""); }}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-border/50 bg-card px-2.5 py-1.5 text-xs font-medium transition-all hover:bg-secondary hover:border-primary/30 hover:text-primary"
                       >
                         {u.name.split(" ")[0]}

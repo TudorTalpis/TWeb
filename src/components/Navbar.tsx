@@ -24,6 +24,10 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
+  const currentProvider = state.session.userId
+    ? state.providerProfiles.find((provider) => provider.userId === state.session.userId)
+    : null;
+  const isProviderBlocked = Boolean(currentProvider?.blocked);
 
   const unreadCount = state.notifications.filter(
       (n) => n.userId === state.session.userId && !n.read
@@ -80,7 +84,7 @@ export function Navbar() {
             {hasRole(["USER", "PROVIDER"]) && (
                 <NavItem to="/dashboard" label={t("nav.bookings")} active={isActive("/dashboard")} />
             )}
-            {hasRole(["PROVIDER"]) && (
+            {hasRole(["PROVIDER"]) && !isProviderBlocked && (
                 <NavItem to="/provider/dashboard" label="Panel" active={isActivePrefix("/provider")} />
             )}
             {hasRole(["ADMIN"]) && (
@@ -150,6 +154,8 @@ export function Navbar() {
                   <div className="relative hidden md:block" ref={userMenuRef}>
                     <button
                         onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        aria-expanded={userMenuOpen}
+                        aria-haspopup="menu"
                         className="flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/40 py-1.5 pl-1.5 pr-3 text-sm transition-all hover:bg-secondary hover:border-border hover:shadow-card"
                     >
                       <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
@@ -160,7 +166,7 @@ export function Navbar() {
                     </button>
 
                     {userMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-58 rounded-2xl border border-border/60 bg-card p-1.5 shadow-card z-50">
+                        <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-border/60 bg-card p-1.5 shadow-card z-50">
                           <div className="px-3 py-2.5 border-b border-border/50 mb-1.5">
                             <p className="text-sm font-semibold text-foreground">{currentUser.name}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">{currentUser.email}</p>
@@ -169,7 +175,7 @@ export function Navbar() {
                           {hasRole(["USER", "PROVIDER"]) && (
                               <UserDropdownItem to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.myBookings")} onClick={() => setUserMenuOpen(false)} />
                           )}
-                          {hasRole(["PROVIDER"]) && (
+                          {hasRole(["PROVIDER"]) && !isProviderBlocked && (
                               <UserDropdownItem to="/provider/profile" icon={<Settings className="h-4 w-4" />} label={t("nav.providerSettings")} onClick={() => setUserMenuOpen(false)} />
                           )}
                           <UserDropdownItem to="/notifications" icon={<Bell className="h-4 w-4" />} label={t("nav.notifications")} onClick={() => setUserMenuOpen(false)} badge={unreadCount > 0 ? unreadCount : undefined} />
@@ -216,6 +222,9 @@ export function Navbar() {
             <button
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground lg:hidden hover:bg-secondary transition-colors"
                 onClick={() => setMenuOpen(!menuOpen)}
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={menuOpen}
+                aria-controls="mobile-nav-menu"
             >
               {menuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
             </button>
@@ -224,7 +233,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {menuOpen && (
-            <div className="border-t border-border/50 bg-card px-4 py-3 lg:hidden animate-fade-in">
+            <div id="mobile-nav-menu" className="border-t border-border/50 bg-card px-4 py-3 lg:hidden animate-fade-in">
               {/* Mobile search */}
               <form onSubmit={handleSearch} className="mb-3 md:hidden">
                 <div className="relative">
@@ -243,7 +252,7 @@ export function Navbar() {
                 {hasRole(["USER", "PROVIDER"]) && (
                     <MobileNavItem to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.myBookings")} onClick={() => setMenuOpen(false)} />
                 )}
-                {hasRole(["PROVIDER"]) && (
+                {hasRole(["PROVIDER"]) && !isProviderBlocked && (
                     <MobileNavItem to="/provider/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label="Panel" onClick={() => setMenuOpen(false)} />
                 )}
                 {hasRole(["ADMIN"]) && (

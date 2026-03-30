@@ -3,6 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAppStore } from "@/store/AppContext";
 import { generateId } from "@/lib/storage";
 import { getEffectiveServiceBufferMinutes, getProviderDefaultBufferMinutes } from "@/lib/services";
@@ -42,6 +52,7 @@ const ProviderServices = () => {
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState<ServiceFormState>(getInitialFormState());
   const [formError, setFormError] = useState("");
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [settingsError, setSettingsError] = useState("");
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
@@ -56,7 +67,7 @@ const ProviderServices = () => {
       defaultBufferMinutes: String(getProviderDefaultBufferMinutes(currentProvider)),
     });
     setSettingsError("");
-  }, [currentProvider?.id, currentProvider?.autoConfirm, currentProvider?.defaultServiceBufferMinutes]);
+  }, [currentProvider, currentProvider?.id, currentProvider?.autoConfirm, currentProvider?.defaultServiceBufferMinutes]);
 
   const providerId = currentProvider?.id ?? "";
   const providerDefaultBuffer = getProviderDefaultBufferMinutes(currentProvider);
@@ -118,12 +129,17 @@ const ProviderServices = () => {
     if (editing) {
       dispatch({ type: "UPDATE_SERVICE", payload: { id: editing.id, ...payload } });
     } else {
+      const primaryCategoryId = currentProvider.categoryIds[0] ?? "";
+      if (!primaryCategoryId) {
+        setFormError("At least one approved category is required before adding services.");
+        return;
+      }
       dispatch({
         type: "ADD_SERVICE",
         payload: {
           id: generateId(),
           providerId: currentProvider.id,
-          categoryId: currentProvider.categoryId,
+          categoryId: primaryCategoryId,
           ...payload,
         },
       });
@@ -192,7 +208,7 @@ const ProviderServices = () => {
               <div className="animate-fade-in rounded-2xl border border-border/60 bg-background/60 p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-sm font-semibold">{editing ? "Edit Service" : "New Service"}</h3>
-                  <button onClick={resetForm} className="text-muted-foreground transition-colors hover:text-foreground">
+                  <button aria-label="Close service form" onClick={resetForm} className="text-muted-foreground transition-colors hover:text-foreground">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -278,14 +294,15 @@ const ProviderServices = () => {
                     </div>
                   </div>
                   <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                    <Button variant="ghost" size="sm" onClick={() => startEdit(service)} className="h-8 w-8 rounded-lg p-0">
+                    <Button aria-label={`Edit ${service.title}`} variant="ghost" size="sm" onClick={() => startEdit(service)} className="h-8 w-8 rounded-lg p-0">
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
+                      aria-label={`Delete ${service.title}`}
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 rounded-lg p-0 text-destructive"
-                      onClick={() => dispatch({ type: "DELETE_SERVICE", payload: service.id })}
+                      onClick={() => setServiceToDelete(service)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -345,6 +362,30 @@ const ProviderServices = () => {
           </div>
         </aside>
       </div>
+
+      <AlertDialog open={Boolean(serviceToDelete)} onOpenChange={(open) => !open && setServiceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete service?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action removes the service permanently from your provider profile.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (!serviceToDelete) return;
+                dispatch({ type: "DELETE_SERVICE", payload: serviceToDelete.id });
+                setServiceToDelete(null);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ProviderPanelLayout>
   );
 };

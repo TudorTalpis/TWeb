@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { UserPlus, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { generateId } from "@/lib/storage";
+import type { AppUser } from "@/types";
 
 const SignUp = (): JSX.Element => {
     const { state, dispatch } = useAppStore();
@@ -48,9 +49,9 @@ const SignUp = (): JSX.Element => {
         if (!emailRegex.test(trimmedEmail)) { setError(t("auth.error.invalidEmail")); return; }
         if (!trimmedPhone) { setError("Please enter your phone number."); return; }
         if (trimmedPhone.length < 6) { setError("Phone number is too short."); return; }
-        const nameTaken = state.users.some((u: any) => u.name.toLowerCase() === trimmedName.toLowerCase());
+        const nameTaken = state.users.some((u: AppUser) => u.name.toLowerCase() === trimmedName.toLowerCase());
         if (nameTaken) { setError(t("auth.error.nameTaken")); return; }
-        const emailTaken = state.users.some((u: any) => u.email.toLowerCase() === trimmedEmail);
+        const emailTaken = state.users.some((u: AppUser) => u.email.toLowerCase() === trimmedEmail);
         if (emailTaken) { setError(t("auth.error.emailTaken")); return; }
         if (!allRulesPassed) { setError(t("auth.error.rulesNotMet")); return; }
         if (!passwordsMatch) { setError(t("auth.error.passNoMatch")); return; }
@@ -137,7 +138,7 @@ const SignUp = (): JSX.Element => {
                                     autoComplete="new-password"
                                     maxLength={128}
                                 />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
@@ -166,7 +167,7 @@ const SignUp = (): JSX.Element => {
                                     autoComplete="new-password"
                                     maxLength={128}
                                 />
-                                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                                <button type="button" aria-label={showConfirm ? "Hide confirmation password" : "Show confirmation password"} onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>

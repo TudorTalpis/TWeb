@@ -3,19 +3,22 @@ import { Star, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { ProviderProfile } from "@/types";
 import { useAppStore } from "@/store/AppContext";
+import { getCategoryNames } from "@/lib/categories";
 
 export function ProviderCard({ provider }: { provider: ProviderProfile }) {
   const { state } = useAppStore();
-  const category = state.categories.find((c) => c.id === provider.categoryId);
+  const categoryNames = getCategoryNames(state.categories, provider.categoryIds);
+  const categoryLabel = categoryNames.join(", ");
   const initials = provider.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-  const linkTo = provider.slug ? `/${provider.slug}` : `/providers/${provider.id}`;
+  const providerRef = provider.slug || provider.id;
+  const linkTo = `/providers/${providerRef}`;
 
   return (
       <Link
           to={linkTo}
           className="group block rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden card-hover relative"
       >
-        <div className="relative h-32 overflow-hidden">
+        <div className="relative h-40 overflow-hidden">
           {provider.coverPhoto || (provider.galleryPhotos && provider.galleryPhotos.length > 0) ? (
               <img
                   src={provider.coverPhoto || provider.galleryPhotos[0]}
@@ -30,7 +33,7 @@ export function ProviderCard({ provider }: { provider: ProviderProfile }) {
               </div>
           )}
 
-          <div className="absolute inset-0 bg-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/5 to-transparent" />
 
           {/* Badges top-left */}
           <div className="absolute top-2 left-2 flex gap-1">
@@ -51,8 +54,8 @@ export function ProviderCard({ provider }: { provider: ProviderProfile }) {
 
           {/* Small avatar bottom-left */}
           {provider.avatar && (
-              <div className="absolute -bottom-3 left-3">
-                <div className="h-8 w-8 rounded-xl border-2 border-card overflow-hidden bg-card shadow-card">
+              <div className="absolute -bottom-4 left-4">
+                <div className="h-10 w-10 rounded-xl border-2 border-card overflow-hidden bg-card shadow-card">
                   <img src={provider.avatar} alt="" className="h-full w-full object-cover" />
                 </div>
               </div>
@@ -60,16 +63,19 @@ export function ProviderCard({ provider }: { provider: ProviderProfile }) {
         </div>
 
         {/* Info below */}
-        <div className="p-3 pt-4">
-          <h3 className="font-display font-semibold text-xs text-card-foreground group-hover:text-primary transition-colors duration-200 truncate">
+        <div className="min-h-[7.8rem] p-4 pt-5">
+          <h3 className="font-display font-semibold text-sm text-card-foreground group-hover:text-primary transition-colors duration-200 leading-snug">
             {provider.name}
           </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MapPin className="h-2.5 w-2.5 flex-shrink-0" /> {provider.location}
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3 flex-shrink-0" /> {provider.location}
           </p>
-          {category && (
-              <p className="mt-0.5 text-[11px] text-primary/70">{category.name}</p>
+          {categoryLabel && (
+              <p className="mt-1 text-xs text-primary/80 leading-snug">{categoryLabel}</p>
           )}
+          <p className="mt-2 text-xs text-muted-foreground leading-relaxed line-clamp-3">
+            {provider.description}
+          </p>
         </div>
       </Link>
   );
