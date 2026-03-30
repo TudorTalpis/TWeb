@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, MapPin, Phone, Star, Image as ImageIcon } from "lucide-react";
 import { generateId } from "@/lib/storage";
+import { getCategoryNames } from "@/lib/categories";
 
 const ApplicationDetail = () => {
   const { applicationId } = useParams();
@@ -16,7 +17,7 @@ const ApplicationDetail = () => {
   const [reason, setReason] = useState("");
 
   const app = state.applications.find((a) => a.id === applicationId);
-  const category = app ? state.categories.find((c) => c.id === app.categoryId) : null;
+  const categoryNames = app ? getCategoryNames(state.categories, app.categoryIds) : [];
 
   if (!app) {
     return (
@@ -43,7 +44,8 @@ const ApplicationDetail = () => {
           name: app.name,
           slug: app.slug,
           description: app.description,
-          categoryId: app.categoryId,
+          categoryIds: app.categoryIds,
+          pendingCategoryNames: [],
           avatar: app.avatar || "",
           coverPhoto: "",
           galleryPhotos: app.galleryPhotos || [],
@@ -130,7 +132,7 @@ const ApplicationDetail = () => {
                 <Phone className="h-4 w-4" /> {app.phone || "No phone"}
               </span>
               <span className="flex items-center gap-1.5">
-                <Star className="h-4 w-4" /> {category?.name ?? "Unknown category"}
+                <Star className="h-4 w-4" /> {categoryNames.join(", ") || "Unknown category"}
               </span>
             </div>
           </div>

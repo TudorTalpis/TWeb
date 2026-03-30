@@ -165,6 +165,7 @@ const ProviderSchedule = () => {
   const isMobile = useIsMobile();
   const todayKey = format(new Date(), "yyyy-MM-dd");
   const providerId = currentProvider?.id ?? "";
+  const primaryCategoryId = currentProvider?.categoryIds?.[0] ?? "";
   const calendarRef = useRef<FullCalendar | null>(null);
   const selectionStepMinutes = 30;
   const [selectionPreview, setSelectionPreview] = useState<{ start: Date; end: Date } | null>(null);
@@ -369,6 +370,36 @@ const ProviderSchedule = () => {
   const allEvents = [...calendarEvents, ...timeoffEvents, ...selectionEvents];
   const hiddenBookingsCount = Math.max(0, filteredBookings.length - calendarEvents.length);
 
+  function resetAddDialog(preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) {
+    const fallbackService = providerServices[0];
+    const useCustom = providerServices.length === 0;
+    const fallbackDuration = fallbackService
+      ? fallbackService.duration + getEffectiveServiceBufferMinutes(fallbackService, currentProvider)
+      : 60;
+    const duration = preset?.duration ?? fallbackDuration;
+
+    setUseCustomService(useCustom);
+    setBookingForm({
+      clientName: "",
+      clientPhone: "",
+      serviceId: "",
+      date: preset?.date ?? selectedDate,
+      startTime: preset?.startTime ?? "09:00",
+      duration,
+    });
+    setCustomService({
+      title: "",
+      price: 0,
+      duration,
+    });
+    setAddError(null);
+  }
+
+  function openAddDialog(preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) {
+    resetAddDialog(preset);
+    setShowAddDialog(true);
+  }
+
   useEffect(() => {
     const api = calendarRef.current?.getApi();
     if (!api) return;
@@ -473,37 +504,7 @@ const ProviderSchedule = () => {
       calendarEl.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [calendarHourRange.min, selectionStepMinutes, updateSelectionPreview]);
-
-  const resetAddDialog = (preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) => {
-    const fallbackService = providerServices[0];
-    const useCustom = providerServices.length === 0;
-    const fallbackDuration = fallbackService
-      ? fallbackService.duration + getEffectiveServiceBufferMinutes(fallbackService, currentProvider)
-      : 60;
-    const duration = preset?.duration ?? fallbackDuration;
-
-    setUseCustomService(useCustom);
-    setBookingForm({
-      clientName: "",
-      clientPhone: "",
-      serviceId: "",
-      date: preset?.date ?? selectedDate,
-      startTime: preset?.startTime ?? "09:00",
-      duration,
-    });
-    setCustomService({
-      title: "",
-      price: 0,
-      duration,
-    });
-    setAddError(null);
-  };
-
-  const openAddDialog = (preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) => {
-    resetAddDialog(preset);
-    setShowAddDialog(true);
-  };
+  }, [calendarHourRange.min, openAddDialog, selectionStepMinutes, updateSelectionPreview]);
 
   const resetEditDialog = (booking: Booking) => {
     const duration = Math.max(5, getDurationMinutes(booking.startTime, booking.endTime));
@@ -584,7 +585,10 @@ const ProviderSchedule = () => {
 
     el.addEventListener("mouseenter", onEnter);
     el.addEventListener("mouseleave", onLeave);
-    (el as any).__scheduleHoverHandlers = { onEnter, onLeave };
+    (el as HTMLElement & { __scheduleHoverHandlers?: { onEnter: () => void; onLeave: () => void } }).__scheduleHoverHandlers = {
+      onEnter,
+      onLeave,
+    };
   };
 
   const handleEventUnmount = (arg: EventMountArg) => {
@@ -754,7 +758,7 @@ const ProviderSchedule = () => {
         price: Number.isFinite(customService.price) ? customService.price : 0,
         duration,
         bufferMinutes: null,
-        categoryId: currentProvider.categoryId,
+        categoryId: primaryCategoryId,
       };
       dispatch({ type: "ADD_SERVICE", payload: newService });
       serviceId = newService.id;

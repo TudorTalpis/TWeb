@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { Star, MapPin, Clock, DollarSign, ArrowLeft, Phone, Briefcase, AlertCircle, Image, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getCategoryNames } from "@/lib/categories";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
 import { useAppStore } from "@/store/AppContext";
+import NotFound from "@/pages/NotFound";
 
 const ProviderPage = () => {
   const { providerSlug } = useParams();
@@ -13,18 +15,14 @@ const ProviderPage = () => {
   const provider = state.providerProfiles.find((p) => p.slug === providerSlug)
       || state.providerProfiles.find((p) => p.id === providerSlug);
 
-  const category = provider ? state.categories.find((c) => c.id === provider.categoryId) : null;
+  const categoryNames = provider ? getCategoryNames(state.categories, provider.categoryIds) : [];
   const services = provider ? state.services.filter((s) => s.providerId === provider.id) : [];
   const reviews = provider ? state.reviews.filter((r) => r.providerId === provider.id) : [];
   const [activeTab, setActiveTab] = useState<"services" | "gallery" | "about">("services");
 
-  if (!provider) {
-    return (
-        <div className="mx-auto max-w-6xl px-4 py-20 text-center">
-          <p className="text-muted-foreground">Provider not found.</p>
-          <Link to="/" className="text-primary hover:underline mt-2 inline-block text-sm">Go home</Link>
-        </div>
-    );
+  if (!provider) return <NotFound />;
+  if (provider.blocked) {
+    return <Navigate to="/error/403" state={{ from: `/providers/${providerSlug}` }} replace />;
   }
 
   const initials = provider.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -36,17 +34,19 @@ const ProviderPage = () => {
           {provider.coverPhoto ? (
               <div className="h-60 sm:h-80 overflow-hidden">
                 <img src={provider.coverPhoto} alt="Cover" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/45 to-black/20" />
               </div>
           ) : (
               <div className="h-60 sm:h-80 bg-secondary relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/25" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/30 to-transparent" />
               </div>
           )}
 
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+
           <div className="absolute bottom-0 left-0 right-0">
             <div className="mx-auto max-w-6xl px-4 pb-6">
-              <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors">
+              <Link to="/" className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-card/80 px-3 py-1.5 text-xs text-foreground shadow-card backdrop-blur-sm transition-colors hover:bg-card">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Link>
               <div className="flex flex-col sm:flex-row items-start gap-5">
@@ -60,20 +60,26 @@ const ProviderPage = () => {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground">{provider.name}</h1>
+                    <h1 className="font-display text-2xl sm:text-3xl font-bold text-white drop-shadow-sm">{provider.name}</h1>
                     {provider.sponsored && <Badge className="bg-accent text-accent-foreground border-0 rounded-full px-2.5 text-xs">Sponsored</Badge>}
                     {provider.featured && <Badge className="bg-primary/10 text-primary border border-primary/30 rounded-full px-2.5 text-xs">Featured</Badge>}
                   </div>
-                  <p className="mt-2 text-muted-foreground text-sm leading-relaxed max-w-xl">{provider.description}</p>
-                  <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                  <span className="flex items-center gap-1.5">
-                    <Star className="h-4 w-4 fill-warning text-warning" />
-                    <span className="font-semibold text-foreground">{provider.rating}</span>
-                    <span>({provider.reviewCount} reviews)</span>
-                  </span>
-                    <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {provider.location}</span>
-                    <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" /> {provider.phone}</span>
-                    {category && <Badge className="bg-secondary text-muted-foreground border-border/50 rounded-full px-2.5 text-xs">{category.name}</Badge>}
+                  <div className="mt-3 max-w-3xl rounded-2xl border border-border/30 bg-card/82 p-3 shadow-card backdrop-blur-sm sm:p-4">
+                    <p className="text-sm leading-relaxed text-foreground/95">{provider.description}</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="font-semibold text-foreground">{provider.rating}</span>
+                        <span>({provider.reviewCount} reviews)</span>
+                      </span>
+                      <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {provider.location}</span>
+                      <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-primary" /> {provider.phone}</span>
+                      {categoryNames.map((name) => (
+                        <Badge key={name} className="rounded-full border-border/50 bg-secondary text-muted-foreground px-2.5 text-xs">
+                          {name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -84,7 +90,7 @@ const ProviderPage = () => {
         {/* Tabs */}
         <div className="border-b border-border/50 bg-card/30 backdrop-blur-sm sticky top-16 z-10">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="flex gap-1">
+            <div className="flex gap-1" role="tablist" aria-label="Provider sections">
               <TabButton active={activeTab === "services"} onClick={() => setActiveTab("services")} icon={<Briefcase className="h-4 w-4" />} label={`Services (${services.length})`} />
               {(provider.galleryPhotos?.length ?? 0) > 0 && (
                   <TabButton active={activeTab === "gallery"} onClick={() => setActiveTab("gallery")} icon={<Image className="h-4 w-4" />} label={`Gallery (${provider.galleryPhotos.length})`} />
@@ -104,7 +110,7 @@ const ProviderPage = () => {
                     <div key={svc.id} className="flex items-center justify-between rounded-2xl border border-border/60 bg-card p-5 shadow-card card-hover group">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display font-semibold text-sm group-hover:text-primary transition-colors">{svc.title}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">{svc.description}</p>
+                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{svc.description}</p>
                         <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1 font-semibold text-foreground"><DollarSign className="h-3 w-3 text-primary" />{svc.price}</span>
                           <span className="flex items-center gap-1">
@@ -151,7 +157,7 @@ const ProviderPage = () => {
                     {[
                       { label: "Location", value: provider.location },
                       { label: "Phone", value: provider.phone },
-                      { label: "Category", value: category?.name },
+                      { label: "Categories", value: categoryNames.join(", ") || "Uncategorized" },
                       { label: "Services", value: services.length },
                     ].map((row) => (
                         <div key={row.label} className="flex justify-between py-2.5">
@@ -207,6 +213,8 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
   return (
       <button
           onClick={onClick}
+          role="tab"
+          aria-selected={active}
           className={`flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-all duration-200 -mb-px ${
               active
                   ? "border-primary text-primary"

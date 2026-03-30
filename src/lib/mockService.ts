@@ -1,23 +1,25 @@
+import { apiClient } from "@/lib/apiClient";
+
 export type MockServiceMode = "ok" | "failed" | "throw";
 
 export type MockServiceResult<T> =
   | { status: "ok"; data: T }
   | { status: "failed"; message: string };
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export async function runMockService(mode: MockServiceMode): Promise<MockServiceResult<{ checkedAt: string }>> {
-  await delay(250);
+  const response = await apiClient.get<{ status: "ok" | "failed"; data?: { checkedAt: string }; message?: string }>(
+    "/simulate/service",
+    { params: { mode } },
+  );
 
-  if (mode === "throw") {
-    throw new Error("Mock service crashed unexpectedly");
+  if (response.data.status === "failed") {
+    return { status: "failed", message: response.data.message || "Service returned failed status" };
   }
 
-  if (mode === "failed") {
-    return { status: "failed", message: "Mock service returned status failed" };
-  }
-
-  return { status: "ok", data: { checkedAt: new Date().toISOString() } };
+  return {
+    status: "ok",
+    data: {
+      checkedAt: response.data.data?.checkedAt || new Date().toISOString(),
+    },
+  };
 }

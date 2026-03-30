@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { useI18n } from "@/store/I18nContext";
 import { Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function Layout({ children }: { children: React.ReactNode }) {
     const { t } = useI18n();
@@ -19,9 +20,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </div>
                         <p className="text-xs text-muted-foreground">{t("footer.copy")}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <a href="#" className="link-underline hover:text-foreground transition-colors">{t("footer.privacy")}</a>
-                            <a href="#" className="link-underline hover:text-foreground transition-colors">{t("footer.terms")}</a>
-                            <a href="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.about")}</a>
+                            <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.privacy")}</Link>
+                            <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.terms")}</Link>
+                            <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.about")}</Link>
                         </div>
                     </div>
                 </div>

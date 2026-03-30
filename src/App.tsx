@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AppProvider } from "@/store/AppContext";
+import { AxiosProvider } from "@/store/AxiosContext";
 import { I18nProvider } from "@/store/I18nContext";
 import { Layout } from "@/components/Layout";
 import { RouteGuard } from "@/components/RouteGuard";
@@ -29,6 +30,10 @@ import AdminApplications from "./pages/admin/Applications";
 import ApplicationDetail from "./pages/admin/ApplicationDetail";
 import AdminProviders from "./pages/admin/Providers";
 import AdminProviderDetail from "./pages/admin/ProviderDetail";
+import AdminCategories from "./pages/admin/Categories";
+import AdminCategoryDetail from "./pages/admin/CategoryDetail";
+import AdminUsers from "./pages/admin/Users";
+import AdminUserDetail from "./pages/admin/UserDetail";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
 import SignUp from "./pages/SignUp";
@@ -45,11 +50,12 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AppProvider>
-            <I18nProvider>
-              <BrowserRouter>
-                <Layout>
-                  <Routes>
+          <AxiosProvider>
+            <AppProvider>
+              <I18nProvider>
+                <BrowserRouter>
+                  <Layout>
+                    <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/categories" element={<Categories />} />
                     <Route path="/providers/:providerSlug" element={<ProviderPage />} />
@@ -105,18 +111,29 @@ const App = () => (
                     <Route path="/admin/providers/:providerId" element={
                       <RouteGuard roles={["ADMIN"]}><AdminProviderDetail /></RouteGuard>
                     } />
+                    <Route path="/admin/categories" element={
+                      <RouteGuard roles={["ADMIN"]}><AdminCategories /></RouteGuard>
+                    } />
+                    <Route path="/admin/categories/:categoryId" element={
+                      <RouteGuard roles={["ADMIN"]}><AdminCategoryDetail /></RouteGuard>
+                    } />
+                    <Route path="/admin/users" element={
+                      <RouteGuard roles={["ADMIN"]}><AdminUsers /></RouteGuard>
+                    } />
+                    <Route path="/admin/users/:userId" element={
+                      <RouteGuard roles={["ADMIN"]}><AdminUserDetail /></RouteGuard>
+                    } />
                     <Route path="/admin" element={
                       <RouteGuard roles={["ADMIN"]}><Admin /></RouteGuard>
                     } />
                     <Route path="/about" element={<About />} />
-                    {/* Slug-based provider route — MUST be last to avoid catching other routes */}
-                    <Route path="/:providerSlug" element={<ProviderPage />} />
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Layout>
-              </BrowserRouter>
-            </I18nProvider>
-          </AppProvider>
+                    </Routes>
+                  </Layout>
+                </BrowserRouter>
+              </I18nProvider>
+            </AppProvider>
+          </AxiosProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

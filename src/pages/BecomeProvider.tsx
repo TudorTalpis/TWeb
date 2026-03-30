@@ -3,17 +3,18 @@ import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppStore } from "@/store/AppContext";
+import { CategoryMultiSelect } from "@/components/CategoryMultiSelect";
+import { createCategoryFromName, findCategoryByName } from "@/lib/categories";
 import { generateId } from "@/lib/storage";
-import { Check, ImagePlus, X, Link as LinkIcon, Upload } from "lucide-react";
+import { Check, X, Link as LinkIcon, Upload } from "lucide-react";
 
 const BecomeProvider = () => {
   const { state, dispatch, currentUser } = useAppStore();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [avatar, setAvatar] = useState("");
@@ -47,14 +48,22 @@ const BecomeProvider = () => {
     setGalleryPhotos(galleryPhotos.filter((_, i) => i !== index));
   };
 
+  const handleCreateCategory = (name: string) => {
+    const existing = findCategoryByName(state.categories, name);
+    if (existing) return existing.id;
+    const created = createCategoryFromName(name, state.categories);
+    dispatch({ type: "ADD_CATEGORY", payload: created });
+    return created.id;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser || !name || !description || !categoryId || !slug.trim() || slugTaken || !avatar.trim() || galleryPhotos.length === 0) return;
+    if (!currentUser || !name || !description || categoryIds.length === 0 || !slug.trim() || slugTaken || !avatar.trim() || galleryPhotos.length === 0) return;
     dispatch({
       type: "ADD_APPLICATION",
       payload: {
         id: generateId(), userId: currentUser.id, name, slug: slug.trim(),
-        description, categoryId, phone, location,
+        description, categoryIds, phone, location,
         avatar: avatar.trim(), galleryPhotos,
         status: "PENDING", createdAt: new Date().toISOString(),
       },
@@ -99,7 +108,7 @@ const BecomeProvider = () => {
     );
   }
 
-  const isValid = name && description && categoryId && slug.trim() && !slugTaken && avatar.trim() && galleryPhotos.length > 0;
+  const isValid = name && description && categoryIds.length > 0 && slug.trim() && !slugTaken && avatar.trim() && galleryPhotos.length > 0;
 
   return (
       <div className="container mx-auto max-w-2xl px-4 py-8 animate-fade-in">
@@ -141,13 +150,17 @@ const BecomeProvider = () => {
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} required maxLength={500} className="mt-1 rounded-xl min-h-[100px]" placeholder="Tell clients about your services..." />
             </div>
             <div>
-              <label className="text-sm font-medium">Category *</label>
-              <Select value={categoryId} onValueChange={setCategoryId} required>
-                <SelectTrigger className="mt-1 rounded-xl"><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent>
-                  {state.categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <CategoryMultiSelect
+                label="Categories *"
+                placeholder="Select or create categories"
+                options={state.categories}
+                value={categoryIds}
+                onChange={setCategoryIds}
+                onCreate={handleCreateCategory}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Type to search, press Enter to create a new category, or select multiple.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

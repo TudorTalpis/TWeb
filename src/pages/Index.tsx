@@ -9,7 +9,8 @@ import { CategoryCard } from "@/components/CategoryCard";
 const Index = () => {
   const { state, hasRole } = useAppStore();
   const { t } = useI18n();
-  const activeProviders = state.providerProfiles.filter((p) => !p.blocked);
+  const providerIdsWithServices = new Set(state.services.map((service) => service.providerId));
+  const activeProviders = state.providerProfiles.filter((p) => !p.blocked && providerIdsWithServices.has(p.id));
   const sponsored = activeProviders.filter((p) => p.sponsored);
   const featured = activeProviders.filter((p) => p.featured);
 
@@ -81,7 +82,7 @@ const Index = () => {
         {sponsored.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
               <SectionHeader title={t("home.sponsored")} badge={t("home.stats.badge.promoted")} />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {sponsored.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
             </section>
@@ -91,7 +92,7 @@ const Index = () => {
         {featured.length > 0 && (
             <section className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
               <SectionHeader title={t("home.featured")} badge={t("home.stats.badge.featured")} />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {featured.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
             </section>
@@ -100,7 +101,7 @@ const Index = () => {
         {/* Categories */}
         <section className="relative mx-auto max-w-6xl px-4 py-12 sm:py-16">
           <SectionHeader title={t("home.categories")} />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {state.categories.map((c) => <CategoryCard key={c.id} category={c} />)}
           </div>
         </section>
@@ -113,7 +114,7 @@ const Index = () => {
               {t("home.viewAll")} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {activeProviders.map((p) => <ProviderCard key={p.id} provider={p} />)}
           </div>
         </section>

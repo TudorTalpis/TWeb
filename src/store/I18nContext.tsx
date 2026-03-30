@@ -100,6 +100,11 @@ const translations: Translations = {
   "settings.phone": { en: "Phone Number", ro: "Număr de Telefon", ru: "Номер телефона" },
   "settings.passwordNote": { en: "Password and phone changes require a backend. Not available in demo mode.", ro: "Schimbarea parolei și telefonului necesită un backend. Indisponibil în modul demo.", ru: "Смена пароля и телефона требует бэкенда. Недоступно в демо-режиме." },
   "settings.becomeProvider": { en: "Become a Provider", ro: "Devino Furnizor", ru: "Стать поставщиком" },
+  "settings.providerCategories": { en: "Provider Categories", ro: "Categorii furnizor", ru: "Категории поставщика" },
+  "settings.categories": { en: "Categories", ro: "Categorii", ru: "Категории" },
+  "settings.categoriesPlaceholder": { en: "Select or create categories", ro: "Selectează sau adaugă categorii", ru: "Выберите или создайте категории" },
+  "settings.categoriesHelp": { en: "You can select multiple categories and create new ones.", ro: "Poți selecta mai multe categorii și poți crea altele noi.", ru: "Можно выбрать несколько категорий и создать новые." },
+  "settings.providerCategoriesRequired": { en: "Select at least one category.", ro: "Selectează cel puțin o categorie.", ru: "Выберите хотя бы одну категорию." },
 
   // Reviews
   "review.title": { en: "Leave a Review", ro: "Lasă o Recenzie", ru: "Оставить отзыв" },

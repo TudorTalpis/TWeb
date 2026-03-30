@@ -1,4 +1,5 @@
 import type { Availability, Booking, TimeOff } from "@/types";
+import { toLocalDateKey } from "@/lib/date";
 
 export interface TimeSlot {
   startTime: string;
@@ -20,7 +21,7 @@ function bookingBlocksSlot(slotStart: number, slotEnd: number, booking: Booking)
   if (booking.status === "CANCELLED") return false;
   const bookingStart = timeToMinutes(booking.startTime);
   const bookingEnd = timeToMinutes(booking.endTime);
-  const occupiedEnd = Math.max(bookingEnd, bookingStart + 60);
+  const occupiedEnd = bookingEnd;
   return slotStart < occupiedEnd && slotEnd > bookingStart;
 }
 
@@ -82,7 +83,7 @@ export function isHourOccupied(
   excludeBookingId?: string
 ): boolean {
   const slotStart = timeToMinutes(startTime);
-  const slotEnd = Math.max(timeToMinutes(endTime), slotStart + 60);
+  const slotEnd = timeToMinutes(endTime);
   return bookings.some((b) => {
     if (b.providerId !== providerId || b.date !== date) return false;
     if (excludeBookingId && b.id === excludeBookingId) return false;
@@ -96,7 +97,7 @@ export function getNext14Days(): string[] {
   for (let i = 1; i <= 14; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() + i);
-    days.push(d.toISOString().split("T")[0]);
+    days.push(toLocalDateKey(d));
   }
   return days;
 }

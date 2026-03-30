@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
 import { ProviderCard } from "@/components/ProviderCard";
@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { getCategoryName, normalizeCategory } from "@/lib/categories";
 
 type SortOption = "relevance" | "name" | "price_low" | "price_high" | "reviews" | "newest";
 
@@ -14,9 +15,9 @@ const Categories = () => {
   const { state } = useAppStore();
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
-  const navigate = useNavigate();
   const selectedCat = params.get("cat");
   const searchQuery = params.get("q") || "";
+  const [categoryQuery, setCategoryQuery] = useState("");
 
   const setSearchQuery = (q: string) => {
     const newParams = new URLSearchParams(params);
@@ -29,18 +30,62 @@ const Categories = () => {
   };
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
 
-  const handleCategoryChange = (catId: string) => {
-    if (selectedCat === catId) {
-      navigate("/categories");
+  const setSelectedCategoryIds = (ids: string[]) => {
+    const newParams = new URLSearchParams(params);
+    if (ids.length > 0) {
+      newParams.set("cat", ids.join(","));
     } else {
-      navigate(`/categories?cat=${catId}`);
+      newParams.delete("cat");
     }
+    setParams(newParams, { replace: true });
   };
 
-  // Filter providers
-  let providers = state.providerProfiles.filter(
-    (p) => !p.blocked && (!selectedCat || p.categoryId === selectedCat)
+  const selectedCategoryIds = useMemo(
+    () => (selectedCat ?? "").split(",").filter(Boolean),
+    [selectedCat],
   );
+  const selectedCategorySet = useMemo(() => new Set(selectedCategoryIds), [selectedCategoryIds]);
+  const selectedCategoryNames = useMemo(
+    () => selectedCategoryIds.map((id) => getCategoryName(state.categories, id)),
+    [selectedCategoryIds, state.categories],
+  );
+  const providerIdsWithServices = useMemo(
+    () => new Set(state.services.map((service) => service.providerId)),
+    [state.services],
+  );
+
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    state.categories.forEach((category) => counts.set(category.id, 0));
+    state.providerProfiles.forEach((provider) => {
+      if (provider.blocked || !providerIdsWithServices.has(provider.id)) return;
+      provider.categoryIds.forEach((id) => counts.set(id, (counts.get(id) ?? 0) + 1));
+    });
+    return counts;
+  }, [state.categories, state.providerProfiles, providerIdsWithServices]);
+  const sortedCategories = useMemo(
+    () =>
+      [...state.categories].sort((a, b) => {
+        const diff = (categoryCounts.get(b.id) ?? 0) - (categoryCounts.get(a.id) ?? 0);
+        if (diff !== 0) return diff;
+        return a.name.localeCompare(b.name);
+      }),
+    [state.categories, categoryCounts],
+  );
+  const topCategories = useMemo(() => sortedCategories.slice(0, 5), [sortedCategories]);
+  const visibleCategories = useMemo(() => {
+    const normalized = normalizeCategory(categoryQuery);
+    if (!normalized) return topCategories;
+    return sortedCategories.filter((category) => normalizeCategory(category.name).includes(normalized));
+  }, [categoryQuery, sortedCategories, topCategories]);
+
+
+  // Filter providers
+  let providers = state.providerProfiles.filter((p) => {
+    if (p.blocked || !providerIdsWithServices.has(p.id)) return false;
+    if (selectedCategoryIds.length === 0) return true;
+    return p.categoryIds.some((id) => selectedCategoryIds.includes(id));
+  });
 
   // Search by name
   if (searchQuery.trim()) {
@@ -71,7 +116,7 @@ const Categories = () => {
     }
   });
 
-  const activeCat = state.categories.find((c) => c.id === selectedCat);
+  const activeCategoryLabel = selectedCategoryNames.length > 0 ? selectedCategoryNames.join(", ") : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 animate-fade-in">
@@ -82,24 +127,34 @@ const Categories = () => {
         <div className="lg:col-span-1">
           <div className="rounded-2xl border bg-card p-5 shadow-card sticky top-20">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("providers.categories")}</h2>
-            <div className="divide-y divide-border">
-              {state.categories.map((c) => {
-                const count = state.providerProfiles.filter(
-                  (p) => !p.blocked && p.categoryId === c.id
-                ).length;
-                const isSelected = selectedCat === c.id;
+            <Input
+              value={categoryQuery}
+              onChange={(event) => setCategoryQuery(event.target.value)}
+              placeholder="Search categories"
+              className="h-9 text-sm"
+            />
+            <div className="mt-4 divide-y divide-border">
+              {visibleCategories.map((category) => {
+                const count = categoryCounts.get(category.id) ?? 0;
+                const isSelected = selectedCategorySet.has(category.id);
                 return (
                   <label
-                    key={c.id}
+                    key={category.id}
                     className="flex items-center justify-between gap-3 py-3 cursor-pointer group"
                   >
                     <div className="flex items-center gap-3">
                       <Checkbox
                         checked={isSelected}
-                        onCheckedChange={() => handleCategoryChange(c.id)}
+                        onCheckedChange={() => {
+                          if (isSelected) {
+                            setSelectedCategoryIds(selectedCategoryIds.filter((id) => id !== category.id));
+                          } else {
+                            setSelectedCategoryIds([...selectedCategoryIds, category.id]);
+                          }
+                        }}
                       />
                       <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                        {c.name}
+                        {category.name}
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground">
@@ -108,6 +163,9 @@ const Categories = () => {
                   </label>
                 );
               })}
+              {visibleCategories.length === 0 && (
+                <p className="py-6 text-center text-xs text-muted-foreground">No categories found.</p>
+              )}
             </div>
           </div>
         </div>
@@ -140,12 +198,12 @@ const Categories = () => {
             </Select>
           </div>
 
-          {activeCat ? (
+          {activeCategoryLabel ? (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-4">
-                {providers.length} {t("providers.title").toLowerCase()} {t("providers.inCategory")} {activeCat.name}
+                {providers.length} {t("providers.title").toLowerCase()} {t("providers.inCategory")} {activeCategoryLabel}
               </h2>
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {providers.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
               {providers.length === 0 && (
@@ -157,7 +215,7 @@ const Categories = () => {
               <h2 className="text-sm font-semibold text-muted-foreground mb-4">
                 {providers.length} {t("providers.title").toLowerCase()}
               </h2>
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {providers.map((p) => <ProviderCard key={p.id} provider={p} />)}
               </div>
               {providers.length === 0 && (
