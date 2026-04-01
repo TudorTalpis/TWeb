@@ -9,17 +9,17 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 export function CategoryCard({ category }: { category: Category }) {
   const Icon = iconMap[category.icon] || Sparkles;
   return (
-    <Link
-      to={`/categories?cat=${category.id}`}
-      className="group flex flex-col items-center gap-3 rounded-2xl border bg-card p-5 shadow-card transition-all duration-200 hover:shadow-elevated hover:-translate-y-0.5"
-    >
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 text-primary transition-all duration-200 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="text-center">
-        <h3 className="font-semibold text-card-foreground text-sm">{category.name}</h3>
-        <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed">{category.description}</p>
-      </div>
-    </Link>
+      <Link
+          to={`/categories?cat=${category.id}`}
+          className="group flex min-h-[10.5rem] flex-col items-center gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-card card-hover relative overflow-hidden"
+      >
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-border/60 bg-secondary text-muted-foreground transition-all duration-300 group-hover:border-primary/50 group-hover:bg-primary/10 group-hover:text-primary">
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="relative text-center">
+          <h3 className="font-display font-semibold text-card-foreground text-sm leading-snug group-hover:text-primary transition-colors duration-200">{category.name}</h3>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-3">{category.description}</p>
+        </div>
+      </Link>
   );
 }

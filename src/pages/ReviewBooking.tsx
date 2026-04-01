@@ -117,7 +117,7 @@ const ReviewBooking = () => {
         <Button
           onClick={handleSubmit}
           disabled={!comment.trim()}
-          className="w-full rounded-xl gradient-primary text-primary-foreground h-11 text-sm font-medium"
+          className="w-full rounded-xl bg-primary text-primary-foreground h-11 text-sm font-medium"
         >
           Submit Review
         </Button>
@@ -127,3 +127,4 @@ const ReviewBooking = () => {
 };
 
 export default ReviewBooking;
+

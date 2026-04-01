@@ -2,17 +2,37 @@ import { useAppStore } from "@/store/AppContext";
 import { useNavigate } from "react-router-dom";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { AppNotification, NotificationType, Role } from "@/types";
+
+function getNotificationRoute(notification: AppNotification, role: Role): string | undefined {
+  if (notification.linkTo) return notification.linkTo;
+
+  const fallbackByType: Record<NotificationType, string> = {
+    application_submitted: "/admin/applications",
+    new_booking: "/provider/bookings",
+    review_request: "/dashboard",
+    booking_success: "/dashboard",
+    application_approved: role === "PROVIDER" ? "/provider/dashboard" : "/become-provider",
+    application_rejected: "/become-provider",
+    provider_blocked: "/provider/dashboard",
+    provider_unblocked: "/provider/dashboard",
+  };
+
+  return fallbackByType[notification.type];
+}
 
 const Notifications = () => {
   const { state, dispatch } = useAppStore();
   const navigate = useNavigate();
   const userId = state.session.userId;
+  const role = state.session.role;
   const notifications = state.notifications.filter((n) => n.userId === userId);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleClick = (n: (typeof notifications)[0]) => {
     if (!n.read) dispatch({ type: "MARK_NOTIFICATION_READ", payload: n.id });
-    if (n.linkTo) navigate(n.linkTo);
+    const route = getNotificationRoute(n, role);
+    if (route) navigate(route);
   };
 
   return (

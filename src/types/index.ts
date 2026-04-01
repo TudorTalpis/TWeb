@@ -6,6 +6,7 @@ export interface AppUser {
   id: string;
   name: string;
   email: string;
+  phone: string;
   password: string;
   role: Role;
   avatar?: string;
@@ -33,12 +34,15 @@ export interface ProviderProfile {
   name: string;
   slug: string; // custom URL slug e.g. "AlinaNails"
   description: string;
-  categoryId: string;
+  categoryIds: string[];
+  pendingCategoryNames: string[];
   avatar: string;
   coverPhoto: string; // cover/banner image URL
   galleryPhotos: string[]; // up to 6 portfolio photos
   phone: string;
   location: string;
+  defaultServiceBufferMinutes: number; // provider-level fallback buffer used when service has no custom buffer
+  autoConfirm: boolean;
   rating: number;
   reviewCount: number;
   featured: boolean;
@@ -54,6 +58,7 @@ export interface Service {
   description: string;
   price: number;
   duration: number; // minutes
+  bufferMinutes: number | null; // null means use provider defaultServiceBufferMinutes
   categoryId: string;
 }
 
@@ -92,6 +97,7 @@ export interface Booking {
   status: BookingStatus;
   createdAt: string;
   userName: string;
+  userPhone?: string;
 }
 
 // ============ PROVIDER APPLICATION ============
@@ -103,12 +109,13 @@ export interface ProviderApplication {
   name: string;
   slug: string;
   description: string;
-  categoryId: string;
+  categoryIds: string[];
   phone: string;
   location: string;
   avatar: string;
   galleryPhotos: string[];
   status: ApplicationStatus;
+  rejectReason?: string;
   createdAt: string;
 }
 
@@ -166,6 +173,10 @@ export type AppAction =
   | { type: "LOGIN"; payload: { userId: string } }
   | { type: "LOGOUT" }
   | { type: "SET_STATE"; payload: AppState }
+  | { type: "ADD_CATEGORY"; payload: Category }
+  | { type: "UPDATE_CATEGORY"; payload: Partial<Category> & { id: string } }
+  | { type: "DELETE_CATEGORY"; payload: string }
+  | { type: "UPDATE_USER"; payload: Partial<AppUser> & { id: string } }
   | { type: "UPDATE_PROVIDER_PROFILE"; payload: Partial<ProviderProfile> & { id: string } }
   | { type: "ADD_SERVICE"; payload: Service }
   | { type: "UPDATE_SERVICE"; payload: Partial<Service> & { id: string } }
@@ -177,7 +188,7 @@ export type AppAction =
   | { type: "UPDATE_BOOKING"; payload: Partial<Booking> & { id: string } }
   | { type: "DELETE_BOOKING"; payload: string }
   | { type: "ADD_APPLICATION"; payload: ProviderApplication }
-  | { type: "UPDATE_APPLICATION"; payload: { id: string; status: ApplicationStatus } }
+  | { type: "UPDATE_APPLICATION"; payload: { id: string; status: ApplicationStatus; rejectReason?: string } }
   | { type: "ADD_NOTIFICATION"; payload: AppNotification }
   | { type: "MARK_NOTIFICATION_READ"; payload: string }
   | { type: "MARK_ALL_NOTIFICATIONS_READ" }

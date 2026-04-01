@@ -2,11 +2,39 @@ import React, { createContext, useContext, useReducer, useEffect, type ReactNode
 import type { AppState, AppAction, Role } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
+import { isHourOccupied } from "@/lib/booking";
+import { normalizeCategory } from "@/lib/categories";
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "SET_STATE":
       return { ...action.payload };
+    case "ADD_CATEGORY": {
+      const normalized = normalizeCategory(action.payload.name);
+      const exists = state.categories.some(
+        (category) =>
+          category.id === action.payload.id || normalizeCategory(category.name) === normalized,
+      );
+      if (exists) return state;
+      return { ...state, categories: [...state.categories, action.payload] };
+    }
+    case "UPDATE_CATEGORY":
+      return {
+        ...state,
+        categories: state.categories.map((c) =>
+            c.id === action.payload.id ? { ...c, ...action.payload } : c
+        ),
+      };
+    case "DELETE_CATEGORY":
+      return { ...state, categories: state.categories.filter((c) => c.id !== action.payload) };
+
+    case "UPDATE_USER":
+      return {
+        ...state,
+        users: state.users.map((u) =>
+            u.id === action.payload.id ? { ...u, ...action.payload } : u
+        ),
+      };
 
     case "LOGIN": {
       const user = state.users.find((u) => u.id === action.payload.userId);
@@ -44,6 +72,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, timeoff: state.timeoff.filter((t) => t.id !== action.payload) };
 
     case "ADD_BOOKING":
+      if (state.providerProfiles.some((provider) => provider.id === action.payload.providerId && provider.blocked)) {
+        return state;
+      }
+      if (
+        isHourOccupied(
+          action.payload.providerId,
+          action.payload.date,
+          action.payload.startTime,
+          action.payload.endTime,
+          state.bookings
+        )
+      ) {
+        return state;
+      }
       return { ...state, bookings: [...state.bookings, action.payload] };
     case "UPDATE_BOOKING":
       return {
@@ -61,7 +103,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         applications: state.applications.map((a) =>
-            a.id === action.payload.id ? { ...a, status: action.payload.status } : a
+            a.id === action.payload.id
+              ? {
+                  ...a,
+                  status: action.payload.status,
+                  rejectReason: action.payload.status === "REJECTED" ? action.payload.rejectReason : undefined,
+                }
+              : a
         ),
       };
 
@@ -119,10 +167,52 @@ function getInitialState(): AppState {
   const seed = createSeedData();
   const saved = loadState();
   if (saved && saved.users && saved.users.length > 0) {
-    // If any saved user lacks a password, force re-seed users
-    const needsReseed = saved.users.some((u: any) => !u.password);
-    const users = needsReseed ? seed.users : saved.users;
-    return { ...seed, ...saved, users };
+    type RawProviderProfile = Partial<AppState["providerProfiles"][number]> & { categoryId?: string };
+    type RawApplication = Partial<AppState["applications"][number]> & { categoryId?: string };
+    type RawService = Partial<AppState["services"][number]>;
+
+    // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
+    const seedById = new Map(seed.users.map((u) => [u.id, u]));
+    const savedUsers = saved.users;
+    const users = savedUsers.map((u) => ({ ...(seedById.get(u.id) ?? u), phone: (seedById.get(u.id)?.phone ?? u.phone ?? "") }));
+    for (const seedUser of seed.users) {
+      if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
+    }
+    const providerProfiles = (saved.providerProfiles ?? seed.providerProfiles).map((p: RawProviderProfile) => {
+      const parsedDefaultBuffer = Number(p.defaultServiceBufferMinutes);
+      const categoryIds = Array.isArray(p.categoryIds)
+        ? p.categoryIds.filter(Boolean)
+        : p.categoryId
+          ? [p.categoryId]
+          : [];
+      const pendingCategoryNames = Array.isArray(p.pendingCategoryNames)
+        ? p.pendingCategoryNames.filter((name: unknown) => typeof name === "string" && name.trim().length > 0)
+        : [];
+      return {
+        ...p,
+        categoryIds,
+        pendingCategoryNames,
+        defaultServiceBufferMinutes: Number.isFinite(parsedDefaultBuffer) ? Math.max(0, parsedDefaultBuffer) : 0,
+        autoConfirm: p.autoConfirm ?? false,
+      };
+    });
+    const applications = (saved.applications ?? seed.applications ?? []).map((a: RawApplication) => {
+      const categoryIds = Array.isArray(a.categoryIds)
+        ? a.categoryIds.filter(Boolean)
+        : a.categoryId
+          ? [a.categoryId]
+          : [];
+      return { ...a, categoryIds };
+    });
+    const services = (saved.services ?? seed.services).map((s: RawService) => {
+      const hasCustomBuffer = s.bufferMinutes !== null && s.bufferMinutes !== undefined && s.bufferMinutes !== "";
+      const parsedBuffer = Number(s.bufferMinutes);
+      return {
+        ...s,
+        bufferMinutes: hasCustomBuffer && Number.isFinite(parsedBuffer) ? Math.max(0, parsedBuffer) : null,
+      };
+    });
+    return { ...seed, ...saved, users, providerProfiles, services, applications };
   }
   return seed;
 }

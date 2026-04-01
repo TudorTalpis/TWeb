@@ -1,71 +1,56 @@
+import { Link } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
-import { generateId } from "@/lib/storage";
+import { Info } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
+import { cn } from "@/lib/utils";
+import { getCategoryNames } from "@/lib/categories";
+
+const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
 
 const AdminApplications = () => {
-  const { state, dispatch } = useAppStore();
-  const pending = state.applications.filter((a) => a.status === "PENDING");
-  const resolved = state.applications.filter((a) => a.status !== "PENDING");
+  const { state } = useAppStore();
+  const pending = state.applications.filter((application) => application.status === "PENDING");
+  const resolved = state.applications.filter((application) => application.status !== "PENDING");
 
-  const handleApprove = (app: typeof state.applications[0]) => {
-    dispatch({ type: "UPDATE_APPLICATION", payload: { id: app.id, status: "APPROVED" } });
-    const user = state.users.find((u) => u.id === app.userId);
-    if (user) {
-      dispatch({ type: "ADD_PROVIDER_PROFILE", payload: {
-        id: generateId(), userId: user.id, name: app.name, slug: app.slug,
-        description: app.description,
-        categoryId: app.categoryId, avatar: app.avatar || "", coverPhoto: "",
-        galleryPhotos: app.galleryPhotos || [],
-        phone: app.phone, location: app.location,
-        rating: 5.0, reviewCount: 0, featured: false, sponsored: false, blocked: false,
-      }});
-      const updatedUsers = state.users.map((u) => u.id === user.id ? { ...u, role: "PROVIDER" as const } : u);
-      dispatch({ type: "SET_STATE", payload: { ...state, users: updatedUsers, applications: state.applications.map((a2) => a2.id === app.id ? { ...a2, status: "APPROVED" as const } : a2) } });
-    }
-    dispatch({
-      type: "ADD_NOTIFICATION",
-      payload: { id: generateId(), userId: app.userId, type: "application_approved", title: "Application Approved!", message: `Your provider application "${app.name}" has been approved.`, read: false, createdAt: new Date().toISOString() },
-    });
-  };
-
-  const handleReject = (app: typeof state.applications[0]) => {
-    dispatch({ type: "UPDATE_APPLICATION", payload: { id: app.id, status: "REJECTED" } });
-    dispatch({
-      type: "ADD_NOTIFICATION",
-      payload: { id: generateId(), userId: app.userId, type: "application_rejected", title: "Application Rejected", message: `Your provider application "${app.name}" was not approved at this time.`, read: false, createdAt: new Date().toISOString() },
-    });
-  };
-
-  const getCategory = (id: string) => state.categories.find((c) => c.id === id)?.name || id;
+  const getCategories = (ids: string[]) => getCategoryNames(state.categories, ids).join(", ") || "Unknown category";
 
   return (
     <AdminPanelLayout>
-      <div className="max-w-2xl space-y-10">
-        <section>
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Pending ({pending.length})</h2>
+      <div className="space-y-6">
+        <section className="space-y-2">
+          <h2 className="font-display text-2xl font-bold">Applications</h2>
+          <p className="text-sm text-muted-foreground">Review pending requests and track resolved provider applications.</p>
+        </section>
+
+        <section className={PANEL_CLASS}>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Pending ({pending.length})</h3>
+            <Badge variant="outline" className="rounded-full border-warning/40 bg-warning/10 text-[10px] text-warning">
+              Needs review
+            </Badge>
+          </div>
+
           {pending.length === 0 ? (
             <div className="rounded-2xl border border-dashed bg-secondary/30 p-8 text-center">
-              <p className="text-muted-foreground text-sm">No pending applications.</p>
+              <p className="text-sm text-muted-foreground">No pending applications.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {pending.map((app) => (
-                <div key={app.id} className="rounded-2xl border bg-card p-5 shadow-card">
-                  <h3 className="font-semibold text-sm">{app.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{app.description}</p>
+              {pending.map((application) => (
+                <div key={application.id} className="rounded-2xl border border-border/60 bg-background/40 p-5">
+                  <h4 className="text-sm font-semibold">{application.name}</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{application.description}</p>
                   <div className="mt-2 text-[11px] text-muted-foreground">
-                    {getCategory(app.categoryId)} · {app.location} · {app.phone}
+                    {getCategories(application.categoryIds)} - {application.location} - {application.phone}
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <Button size="sm" className="gap-1 rounded-full h-8 px-4 text-xs bg-success text-success-foreground hover:bg-success/90" onClick={() => handleApprove(app)}>
-                      <Check className="h-3 w-3" /> Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" className="gap-1 rounded-full h-8 px-4 text-xs" onClick={() => handleReject(app)}>
-                      <X className="h-3 w-3" /> Reject
-                    </Button>
+                    <Link to={`/admin/applications/${application.id}`}>
+                      <Button size="sm" variant="outline" className="h-8 gap-1 rounded-full px-4 text-xs">
+                        <Info className="h-3 w-3" /> Info
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -74,15 +59,27 @@ const AdminApplications = () => {
         </section>
 
         {resolved.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Resolved</h2>
+          <section className={PANEL_CLASS}>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Resolved ({resolved.length})</h3>
             <div className="space-y-2">
-              {resolved.map((app) => (
-                <div key={app.id} className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 opacity-60">
-                  <span className="text-sm font-medium">{app.name}</span>
-                  <Badge variant={app.status === "APPROVED" ? "default" : "destructive"} className="text-[10px] rounded-full">
-                    {app.status}
-                  </Badge>
+              {resolved.map((application) => (
+                <div key={application.id} className="rounded-2xl border border-border/60 bg-background/40 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">{application.name}</span>
+                    <Badge
+                      className={cn(
+                        "rounded-full px-2 text-[10px]",
+                        application.status === "APPROVED"
+                          ? "border-0 bg-success/15 text-success"
+                          : "border-0 bg-destructive/15 text-destructive",
+                      )}
+                    >
+                      {application.status}
+                    </Badge>
+                  </div>
+                  {application.status === "REJECTED" && application.rejectReason && (
+                    <p className="mt-2 text-xs text-destructive">Reason: {application.rejectReason}</p>
+                  )}
                 </div>
               ))}
             </div>
