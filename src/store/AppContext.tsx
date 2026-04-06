@@ -5,7 +5,7 @@ import { createSeedData } from "@/data/seed";
 import { isHourOccupied } from "@/lib/booking";
 import { normalizeCategory } from "@/lib/categories";
 
-function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "SET_STATE":
       return { ...action.payload };
@@ -170,11 +170,21 @@ function getInitialState(): AppState {
     type RawProviderProfile = Partial<AppState["providerProfiles"][number]> & { categoryId?: string };
     type RawApplication = Partial<AppState["applications"][number]> & { categoryId?: string };
     type RawService = Partial<AppState["services"][number]>;
+    type RawUser = Partial<AppState["users"][number]>;
 
-    // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
+    // Merge seed users (with passwords) with saved user data (without passwords for security)
+    // Passwords are intentionally NOT stored in localStorage for security
     const seedById = new Map(seed.users.map((u) => [u.id, u]));
-    const savedUsers = saved.users;
-    const users = savedUsers.map((u) => ({ ...(seedById.get(u.id) ?? u), phone: (seedById.get(u.id)?.phone ?? u.phone ?? "") }));
+    const savedUsers = saved.users as RawUser[];
+    const users = savedUsers.map((u) => {
+      const seedUser = seedById.get(u.id!);
+      // Always use seed user's password since we don't persist passwords
+      return { 
+        ...(seedUser ?? u), 
+        phone: (seedUser?.phone ?? u.phone ?? ""),
+        password: seedUser?.password ?? "" 
+      };
+    });
     for (const seedUser of seed.users) {
       if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
     }
