@@ -11,7 +11,7 @@ import { generateId } from "@/lib/storage";
 import { normalizeCategory } from "@/lib/categories";
 import type { Category } from "@/types";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const AVAILABLE_ICONS = [
   "Wrench", "Scissors", "Hammer", "Brush", "Sparkles", "Home", 
@@ -71,7 +71,7 @@ const AdminCategories = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <div>

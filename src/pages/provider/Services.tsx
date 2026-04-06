@@ -185,7 +185,7 @@ const ProviderServices = () => {
 
   return (
     <ProviderPanelLayout>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+      <div className="animate-fade-in grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
         <section className="overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-secondary/20 px-5 py-4">
             <div>

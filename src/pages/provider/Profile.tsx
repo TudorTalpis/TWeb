@@ -302,7 +302,7 @@ const ProviderProfilePage = () => {
 
   return (
       <ProviderPanelLayout>
-        <div className="max-w-6xl space-y-6">
+        <div className="animate-fade-in max-w-6xl space-y-6">
           {/* Cover Photo Preview */}
           <div className="relative rounded-2xl overflow-hidden border h-40 bg-secondary group cursor-pointer"
                onClick={() => coverInputRef.current?.click()}

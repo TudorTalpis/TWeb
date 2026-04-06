@@ -7,7 +7,7 @@ import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import { getCategoryNames } from "@/lib/categories";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const AdminApplications = () => {
   const { state } = useAppStore();
@@ -18,7 +18,7 @@ const AdminApplications = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Applications</h2>
           <p className="text-sm text-muted-foreground">Review pending requests and track resolved provider applications.</p>

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Package } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const AVAILABLE_ICONS = [
   "Wrench", "Scissors", "Hammer", "Brush", "Sparkles", "Home", 
@@ -72,7 +72,7 @@ const AdminCategoryDetail = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <Link to="/admin/categories">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Categories

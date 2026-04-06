@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { getCategoryNames } from "@/lib/categories";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const AdminProviders = () => {
   const { state, dispatch } = useAppStore();
@@ -19,7 +19,7 @@ const AdminProviders = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <section className="space-y-2">
           <h2 className="font-display text-2xl font-bold">Providers</h2>
           <p className="text-sm text-muted-foreground">Manage featured placement, sponsored visibility, and account access.</p>

@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
 import { toLocalDateKey } from "@/lib/date";
 import type { Booking } from "@/types";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 const TOOLTIP_CLASS = "rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur";
 
 const statusStyles: Record<string, string> = {
@@ -291,7 +291,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6">
+    <div className="animate-fade-in mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6">
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold">{t("dashboard.title")}</h1>
