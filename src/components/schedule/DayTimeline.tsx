@@ -1,21 +1,9 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Clock,
-  CalendarOff,
-  Utensils,
-  Plus,
-  Trash2,
-  GripVertical,
-} from "lucide-react";
+import { Clock, CalendarOff, Utensils, Plus, Trash2, GripVertical } from "lucide-react";
 import type { Availability } from "@/types";
-import {
-  getTimeRangePercentage,
-  minutesToTime,
-  timeToMinutes,
-  getEntryType,
-} from "@/lib/schedule-utils";
+import { getTimeRangePercentage, timeToMinutes, getEntryType } from "@/lib/schedule-utils";
 
 interface DayTimelineProps {
   dayIndex: number;
@@ -43,32 +31,23 @@ export function DayTimeline({
   onAddLunch,
   onAddBlock,
 }: DayTimelineProps) {
-  const sortedEntries = [...entries].sort((a, b) =>
-    timeToMinutes(a.startTime) - timeToMinutes(b.startTime)
-  );
+  const sortedEntries = [...entries].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
 
   return (
     <div
       className={`rounded-xl border-2 p-4 transition-all ${
-        isSelected
-          ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border bg-card hover:border-primary/50"
+        isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/50"
       }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={onToggleSelect}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
+        <button onClick={onToggleSelect} className="flex items-center gap-3 cursor-pointer group">
           <div
             className={`h-3 w-3 rounded-full transition-colors ${
               entries.length > 0 ? "bg-green-500" : "bg-muted-foreground/30"
             }`}
           />
-          <span className="text-sm font-semibold group-hover:text-primary transition-colors">
-            {dayLabel}
-          </span>
+          <span className="text-sm font-semibold group-hover:text-primary transition-colors">{dayLabel}</span>
           {entries.length === 0 && (
             <Badge variant="secondary" className="text-xs">
               Closed
@@ -132,11 +111,8 @@ export function DayTimeline({
             </div>
 
             {/* Entry blocks */}
-            {sortedEntries.map((entry, idx) => {
-              const { left, width } = getTimeRangePercentage(
-                entry.startTime,
-                entry.endTime
-              );
+            {sortedEntries.map((entry) => {
+              const { left, width } = getTimeRangePercentage(entry.startTime, entry.endTime);
               const entryType = getEntryType(entry);
 
               return (
@@ -146,8 +122,8 @@ export function DayTimeline({
                     entryType === "blocked"
                       ? "bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-200 border border-red-300 dark:border-red-700"
                       : entryType === "lunch"
-                      ? "bg-orange-200 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700"
-                      : "bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:brightness-95"
+                        ? "bg-orange-200 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border border-orange-300 dark:border-orange-700"
+                        : "bg-green-200 dark:bg-green-900/40 text-green-800 dark:text-green-200 border border-green-300 dark:border-green-700 hover:brightness-95"
                   }`}
                   style={{
                     left: `${left}%`,
@@ -156,13 +132,21 @@ export function DayTimeline({
                   onClick={() => {
                     // Focus on this entry for editing
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      // Focus on this entry for editing
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Edit ${entryType} entry ${entry.startTime}-${entry.endTime}`}
                 >
                   <span className="truncate">
                     {entryType === "blocked"
                       ? "Blocked"
                       : entryType === "lunch"
-                      ? "Lunch"
-                      : `${entry.startTime}–${entry.endTime}`}
+                        ? "Lunch"
+                        : `${entry.startTime}–${entry.endTime}`}
                   </span>
                 </div>
               );
@@ -171,7 +155,7 @@ export function DayTimeline({
 
           {/* Entry editor rows */}
           <div className="space-y-2">
-            {sortedEntries.map((entry, idx) => {
+            {sortedEntries.map((entry) => {
               const originalIndex = entries.findIndex((e) => e.id === entry.id);
               const entryType = getEntryType(entry);
 
@@ -182,38 +166,28 @@ export function DayTimeline({
                     entryType === "blocked"
                       ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
                       : entryType === "lunch"
-                      ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"
-                      : "bg-muted/30 border-border"
+                        ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800"
+                        : "bg-muted/30 border-border"
                   }`}
                 >
                   <GripVertical className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
 
-                  {entryType === "blocked" && (
-                    <CalendarOff className="h-4 w-4 text-red-600 flex-shrink-0" />
-                  )}
-                  {entryType === "lunch" && (
-                    <Utensils className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                  )}
+                  {entryType === "blocked" && <CalendarOff className="h-4 w-4 text-red-600 flex-shrink-0" />}
+                  {entryType === "lunch" && <Utensils className="h-4 w-4 text-orange-600 flex-shrink-0" />}
 
                   <Input
                     type="time"
                     value={entry.startTime}
-                    onChange={(e) =>
-                      onUpdateEntry(originalIndex, { startTime: e.target.value })
-                    }
+                    onChange={(e) => onUpdateEntry(originalIndex, { startTime: e.target.value })}
                     className="h-9 w-28"
                   />
 
-                  <span className="text-sm text-muted-foreground flex-shrink-0">
-                    to
-                  </span>
+                  <span className="text-sm text-muted-foreground flex-shrink-0">to</span>
 
                   <Input
                     type="time"
                     value={entry.endTime}
-                    onChange={(e) =>
-                      onUpdateEntry(originalIndex, { endTime: e.target.value })
-                    }
+                    onChange={(e) => onUpdateEntry(originalIndex, { endTime: e.target.value })}
                     className="h-9 w-28"
                   />
 
@@ -233,9 +207,7 @@ export function DayTimeline({
                           className="h-9 w-20"
                           placeholder="Duration"
                         />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          min
-                        </span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">min</span>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -252,9 +224,7 @@ export function DayTimeline({
                           className="h-9 w-20"
                           placeholder="Buffer"
                         />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          buffer
-                        </span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">buffer</span>
                       </div>
                     </>
                   )}
@@ -286,13 +256,7 @@ export function DayTimeline({
         <div className="text-center py-8 text-muted-foreground">
           <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No hours set</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2 gap-1.5"
-            onClick={onAddAvailability}
-          >
+          <Button type="button" variant="outline" size="sm" className="mt-2 gap-1.5" onClick={onAddAvailability}>
             <Plus className="h-3.5 w-3.5" />
             Add hours
           </Button>

@@ -201,7 +201,12 @@ const ProviderSchedule = () => {
   const [addError, setAddError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
-  const [pendingMove, setPendingMove] = useState<{ bookingId: string; date: string; startTime: string; endTime: string } | null>(null);
+  const [pendingMove, setPendingMove] = useState<{
+    bookingId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+  } | null>(null);
   const [bookingForm, setBookingForm] = useState<AddBookingFormState>({
     clientName: "",
     clientPhone: "",
@@ -240,7 +245,10 @@ const ProviderSchedule = () => {
     () => state.timeoff.filter((timeoff) => timeoff.providerId === providerId),
     [state.timeoff, providerId],
   );
-  const servicesById = useMemo(() => new Map(providerServices.map((service) => [service.id, service])), [providerServices]);
+  const servicesById = useMemo(
+    () => new Map(providerServices.map((service) => [service.id, service])),
+    [providerServices],
+  );
 
   const activeBookings = useMemo(
     () => providerBookings.filter((booking) => booking.status !== "CANCELLED"),
@@ -318,19 +326,21 @@ const ProviderSchedule = () => {
       if (!normalizedDate || !normalizedStart || !normalizedEnd) return [];
 
       const serviceName = servicesById.get(booking.serviceId)?.title ?? "Service";
-      return [{
-        id: booking.id,
-        title: booking.userName,
-        start: `${normalizedDate}T${normalizedStart}`,
-        end: `${normalizedDate}T${normalizedEnd}`,
-        classNames: ["schedule-event", `schedule-event-${booking.status.toLowerCase()}`],
-        extendedProps: {
-          bookingId: booking.id,
-          userName: booking.userName,
-          serviceName,
-          status: booking.status,
-        } satisfies BookingEventData,
-      }];
+      return [
+        {
+          id: booking.id,
+          title: booking.userName,
+          start: `${normalizedDate}T${normalizedStart}`,
+          end: `${normalizedDate}T${normalizedEnd}`,
+          classNames: ["schedule-event", `schedule-event-${booking.status.toLowerCase()}`],
+          extendedProps: {
+            bookingId: booking.id,
+            userName: booking.userName,
+            serviceName,
+            status: booking.status,
+          } satisfies BookingEventData,
+        },
+      ];
     });
   }, [filteredBookings, servicesById]);
 
@@ -341,14 +351,16 @@ const ProviderSchedule = () => {
       const normalizedEnd = toIsoTime(timeoff.endTime);
       if (!normalizedDate || !normalizedStart || !normalizedEnd) return [];
 
-      return [{
-        id: `timeoff-${timeoff.id}`,
-        title: "Time off",
-        start: `${normalizedDate}T${normalizedStart}`,
-        end: `${normalizedDate}T${normalizedEnd}`,
-        display: "background" as const,
-        classNames: ["schedule-timeoff"],
-      }];
+      return [
+        {
+          id: `timeoff-${timeoff.id}`,
+          title: "Time off",
+          start: `${normalizedDate}T${normalizedStart}`,
+          end: `${normalizedDate}T${normalizedEnd}`,
+          display: "background" as const,
+          classNames: ["schedule-timeoff"],
+        },
+      ];
     });
   }, [providerTimeoff]);
 
@@ -358,47 +370,48 @@ const ProviderSchedule = () => {
   }, []);
 
   const selectionEvents = selectionPreview
-    ? [{
-        id: "selection-preview",
-        start: selectionPreview.start,
-        end: selectionPreview.end,
-        display: "background" as const,
-        classNames: ["schedule-selection"],
-      }]
+    ? [
+        {
+          id: "selection-preview",
+          start: selectionPreview.start,
+          end: selectionPreview.end,
+          display: "background" as const,
+          classNames: ["schedule-selection"],
+        },
+      ]
     : [];
 
   const allEvents = [...calendarEvents, ...timeoffEvents, ...selectionEvents];
   const hiddenBookingsCount = Math.max(0, filteredBookings.length - calendarEvents.length);
 
-  function resetAddDialog(preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) {
-    const fallbackService = providerServices[0];
-    const useCustom = providerServices.length === 0;
-    const fallbackDuration = fallbackService
-      ? fallbackService.duration + getEffectiveServiceBufferMinutes(fallbackService, currentProvider)
-      : 60;
-    const duration = preset?.duration ?? fallbackDuration;
+  const openAddDialog = useCallback(
+    (preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) => {
+      const fallbackService = providerServices[0];
+      const useCustom = providerServices.length === 0;
+      const fallbackDuration = fallbackService
+        ? fallbackService.duration + getEffectiveServiceBufferMinutes(fallbackService, currentProvider)
+        : 60;
+      const duration = preset?.duration ?? fallbackDuration;
 
-    setUseCustomService(useCustom);
-    setBookingForm({
-      clientName: "",
-      clientPhone: "",
-      serviceId: "",
-      date: preset?.date ?? selectedDate,
-      startTime: preset?.startTime ?? "09:00",
-      duration,
-    });
-    setCustomService({
-      title: "",
-      price: 0,
-      duration,
-    });
-    setAddError(null);
-  }
-
-  function openAddDialog(preset?: Partial<Pick<AddBookingFormState, "date" | "startTime" | "duration">>) {
-    resetAddDialog(preset);
-    setShowAddDialog(true);
-  }
+      setUseCustomService(useCustom);
+      setBookingForm({
+        clientName: "",
+        clientPhone: "",
+        serviceId: "",
+        date: preset?.date ?? selectedDate,
+        startTime: preset?.startTime ?? "09:00",
+        duration,
+      });
+      setCustomService({
+        title: "",
+        price: 0,
+        duration,
+      });
+      setAddError(null);
+      setShowAddDialog(true);
+    },
+    [providerServices, currentProvider, selectedDate],
+  );
 
   useEffect(() => {
     const api = calendarRef.current?.getApi();
@@ -524,7 +537,6 @@ const ProviderSchedule = () => {
     setShowEditDialog(true);
   };
 
-
   const handleEventClick = (click: EventClickArg) => {
     if (click.event.display === "background") return;
     setSelectedBookingId(click.event.id);
@@ -585,7 +597,9 @@ const ProviderSchedule = () => {
 
     el.addEventListener("mouseenter", onEnter);
     el.addEventListener("mouseleave", onLeave);
-    (el as HTMLElement & { __scheduleHoverHandlers?: { onEnter: () => void; onLeave: () => void } }).__scheduleHoverHandlers = {
+    (
+      el as HTMLElement & { __scheduleHoverHandlers?: { onEnter: () => void; onLeave: () => void } }
+    ).__scheduleHoverHandlers = {
       onEnter,
       onLeave,
     };
@@ -700,14 +714,7 @@ const ProviderSchedule = () => {
       return "Bookings cannot cross midnight.";
     }
 
-    const overlapWithBooking = isHourOccupied(
-      providerId,
-      date,
-      startTime,
-      endTime,
-      state.bookings,
-      booking.id,
-    );
+    const overlapWithBooking = isHourOccupied(providerId, date, startTime, endTime, state.bookings, booking.id);
 
     if (overlapWithBooking) {
       return "This slot overlaps with an existing booking.";
@@ -834,7 +841,13 @@ const ProviderSchedule = () => {
   };
 
   const cancelSelectedBooking = () => {
-    if (!selectedBooking || selectedBooking.status === "CANCELLED" || selectedBooking.status === "COMPLETED" || !currentProvider) return;
+    if (
+      !selectedBooking ||
+      selectedBooking.status === "CANCELLED" ||
+      selectedBooking.status === "COMPLETED" ||
+      !currentProvider
+    )
+      return;
 
     dispatch({ type: "UPDATE_BOOKING", payload: { id: selectedBooking.id, status: "CANCELLED" } });
 
@@ -908,7 +921,9 @@ const ProviderSchedule = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-xl font-bold">Schedule</h2>
-            <p className="text-sm text-muted-foreground">Click a slot to add a booking. Click a booking to manage it.</p>
+            <p className="text-sm text-muted-foreground">
+              Click a slot to add a booking. Click a booking to manage it.
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button className="gap-2" onClick={() => openAddDialog()}>
@@ -934,7 +949,9 @@ const ProviderSchedule = () => {
           <div className="rounded-2xl border bg-card px-4 py-3 shadow-card">
             <p className="text-xs text-muted-foreground">Next Booking</p>
             <p className="mt-1 text-sm font-semibold">
-              {nextUpcomingBooking ? `${formatDateLabel(nextUpcomingBooking.date)} at ${nextUpcomingBooking.startTime}` : "No upcoming bookings"}
+              {nextUpcomingBooking
+                ? `${formatDateLabel(nextUpcomingBooking.date)} at ${nextUpcomingBooking.startTime}`
+                : "No upcoming bookings"}
             </p>
           </div>
         </div>
@@ -1222,7 +1239,8 @@ const ProviderSchedule = () => {
                   <SelectContent>
                     {providerServices.map((service) => (
                       <SelectItem key={service.id} value={service.id}>
-                        {service.title} ({service.duration} min + {getEffectiveServiceBufferMinutes(service, currentProvider)} min buffer)
+                        {service.title} ({service.duration} min +{" "}
+                        {getEffectiveServiceBufferMinutes(service, currentProvider)} min buffer)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1393,7 +1411,8 @@ const ProviderSchedule = () => {
                   <SelectContent>
                     {providerServices.map((service) => (
                       <SelectItem key={service.id} value={service.id}>
-                        {service.title} ({service.duration} min + {getEffectiveServiceBufferMinutes(service, currentProvider)} min buffer)
+                        {service.title} ({service.duration} min +{" "}
+                        {getEffectiveServiceBufferMinutes(service, currentProvider)} min buffer)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1466,9 +1485,7 @@ const ProviderSchedule = () => {
                   min={5}
                   step={5}
                   value={editForm.duration}
-                  onChange={(event) =>
-                    setEditForm((prev) => ({ ...prev, duration: Number(event.target.value) || 5 }))
-                  }
+                  onChange={(event) => setEditForm((prev) => ({ ...prev, duration: Number(event.target.value) || 5 }))}
                 />
               </div>
             </div>
@@ -1511,7 +1528,9 @@ const ProviderSchedule = () => {
             {pendingMove && (
               <div className="rounded-xl border bg-muted/30 px-3 py-2 text-xs text-foreground">
                 <p className="font-medium">New schedule</p>
-                <p className="mt-1">{formatDateLabel(pendingMove.date)} · {pendingMove.startTime} - {pendingMove.endTime}</p>
+                <p className="mt-1">
+                  {formatDateLabel(pendingMove.date)} · {pendingMove.startTime} - {pendingMove.endTime}
+                </p>
               </div>
             )}
           </div>
