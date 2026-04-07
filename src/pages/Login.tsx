@@ -54,6 +54,22 @@ const Login = (): JSX.Element => {
         email: response.email,
       });
 
+      // Add user to state if not already present (newly signed up users)
+      const existingUser = state.users.find((u) => u.id === response.userId);
+      if (!existingUser) {
+        dispatch({
+          type: "ADD_USER",
+          payload: {
+            id: response.userId,
+            name: response.name,
+            email: response.email,
+            phone: "",
+            password: "",
+            role: response.role as AppUser["role"],
+          },
+        });
+      }
+
       // Update app state
       dispatch({ type: "LOGIN", payload: { userId: response.userId } });
       toast({ title: `Welcome back, ${response.name}!` });
@@ -67,8 +83,10 @@ const Login = (): JSX.Element => {
       } else {
         navigate(from);
       }
-    } catch (err: any) {
-      const message = err?.response?.data?.message || t("auth.error.invalidCredentials");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        t("auth.error.invalidCredentials");
       setError(message);
     }
   };
@@ -206,7 +224,7 @@ const Login = (): JSX.Element => {
                     key={u.id}
                     type="button"
                     onClick={() => {
-                      setName(u.name);
+                      setIdentifier(u.email || u.name);
                       setPassword(u.password);
                       setError("");
                     }}

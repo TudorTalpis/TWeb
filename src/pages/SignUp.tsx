@@ -11,7 +11,7 @@ import { useSignUp } from "@/api/hooks";
 import { saveSession } from "@/lib/auth";
 
 const SignUp = (): JSX.Element => {
-  const { dispatch } = useAppStore();
+  const { state, dispatch } = useAppStore();
   const { t } = useI18n();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -97,12 +97,29 @@ const SignUp = (): JSX.Element => {
         email: response.email,
       });
 
+      // Add user to state if not already present
+      const existingUser = state.users.find((u) => u.id === response.userId);
+      if (!existingUser) {
+        dispatch({
+          type: "ADD_USER",
+          payload: {
+            id: response.userId,
+            name: response.name,
+            email: response.email,
+            phone: trimmedPhone,
+            password: "",
+            role: "USER",
+          },
+        });
+      }
+
       // Update app state
       dispatch({ type: "LOGIN", payload: { userId: response.userId } });
       toast({ title: `Welcome, ${response.name}!` });
       navigate("/");
-    } catch (err: any) {
-      const message = err?.response?.data?.message || "Failed to create account";
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create account";
       setError(message);
     }
   };
