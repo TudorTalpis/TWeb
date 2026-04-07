@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n } from "@/store/I18nContext";
+import { useI18n } from "@/store/useI18n";
 import { ProviderCard } from "@/components/ProviderCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -40,10 +40,7 @@ const Categories = () => {
     setParams(newParams, { replace: true });
   };
 
-  const selectedCategoryIds = useMemo(
-    () => (selectedCat ?? "").split(",").filter(Boolean),
-    [selectedCat],
-  );
+  const selectedCategoryIds = useMemo(() => (selectedCat ?? "").split(",").filter(Boolean), [selectedCat]);
   const selectedCategorySet = useMemo(() => new Set(selectedCategoryIds), [selectedCategoryIds]);
   const selectedCategoryNames = useMemo(
     () => selectedCategoryIds.map((id) => getCategoryName(state.categories, id)),
@@ -78,7 +75,6 @@ const Categories = () => {
     if (!normalized) return topCategories;
     return sortedCategories.filter((category) => normalizeCategory(category.name).includes(normalized));
   }, [categoryQuery, sortedCategories, topCategories]);
-
 
   // Filter providers
   let providers = state.providerProfiles.filter((p) => {
@@ -126,7 +122,9 @@ const Categories = () => {
         {/* Categories list sidebar */}
         <div className="lg:col-span-1">
           <div className="rounded-2xl border bg-card p-5 shadow-card sticky top-20">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("providers.categories")}</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+              {t("providers.categories")}
+            </h2>
             <Input
               value={categoryQuery}
               onChange={(event) => setCategoryQuery(event.target.value)}
@@ -157,9 +155,7 @@ const Categories = () => {
                         {category.name}
                       </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      ({count})
-                    </span>
+                    <span className="text-xs text-muted-foreground">({count})</span>
                   </label>
                 );
               })}
@@ -201,10 +197,13 @@ const Categories = () => {
           {activeCategoryLabel ? (
             <div>
               <h2 className="text-sm font-semibold text-muted-foreground mb-4">
-                {providers.length} {t("providers.title").toLowerCase()} {t("providers.inCategory")} {activeCategoryLabel}
+                {providers.length} {t("providers.title").toLowerCase()} {t("providers.inCategory")}{" "}
+                {activeCategoryLabel}
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {providers.map((p) => <ProviderCard key={p.id} provider={p} />)}
+                {providers.map((p) => (
+                  <ProviderCard key={p.id} provider={p} />
+                ))}
               </div>
               {providers.length === 0 && (
                 <p className="text-muted-foreground py-12 text-center text-sm">{t("providers.noProviders")}</p>
@@ -216,7 +215,9 @@ const Categories = () => {
                 {providers.length} {t("providers.title").toLowerCase()}
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {providers.map((p) => <ProviderCard key={p.id} provider={p} />)}
+                {providers.map((p) => (
+                  <ProviderCard key={p.id} provider={p} />
+                ))}
               </div>
               {providers.length === 0 && (
                 <p className="text-muted-foreground py-12 text-center text-sm">{t("providers.noProviders")}</p>

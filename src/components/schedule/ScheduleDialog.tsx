@@ -2,21 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Clock,
-  Check,
-  X,
-  Copy,
-  CalendarOff,
-  ChevronRight,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Clock, Check, X, Copy, CalendarOff, ChevronRight } from "lucide-react";
 import type { Availability } from "@/types";
 import { generateId } from "@/lib/storage";
 
@@ -38,10 +25,6 @@ const formatHour = (hour: number): string => {
   if (hour === 12) return "12 PM";
   if (hour < 12) return `${hour} AM`;
   return `${hour - 12} PM`;
-};
-
-const formatTimeRange = (start: number, end: number): string => {
-  return `${formatHour(start)} – ${formatHour(end)}`;
 };
 
 interface ScheduleDialogProps {
@@ -75,32 +58,24 @@ export function ScheduleDialog({
     return () => window.removeEventListener("mouseup", handleMouseUp);
   }, []);
 
-  const getDayEntries = useCallback(
-    (day: number) => availabilityByDay[day] || [],
-    [availabilityByDay]
-  );
+  const getDayEntries = useCallback((day: number) => availabilityByDay[day] || [], [availabilityByDay]);
 
   const setDayEntries = useCallback(
     (day: number, entries: Availability[]) => {
       onAvailabilityChange({ ...availabilityByDay, [day]: entries });
     },
-    [availabilityByDay, onAvailabilityChange]
+    [availabilityByDay, onAvailabilityChange],
   );
 
-  const mergeAdjacentEntries = (
-    entries: Availability[],
-    type: "available" | "blocked"
-  ): Availability[] => {
+  const mergeAdjacentEntries = (entries: Availability[], type: "available" | "blocked"): Availability[] => {
     const filtered = entries.filter((e) => e.isBlocked === (type === "blocked"));
     const others = entries.filter((e) => e.isBlocked !== (type === "blocked"));
 
-    filtered.sort(
-      (a, b) => {
-        const aHour = parseInt(a.startTime.split(":")[0]);
-        const bHour = parseInt(b.startTime.split(":")[0]);
-        return aHour - bHour;
-      }
-    );
+    filtered.sort((a, b) => {
+      const aHour = parseInt(a.startTime.split(":")[0]);
+      const bHour = parseInt(b.startTime.split(":")[0]);
+      return aHour - bHour;
+    });
 
     const merged: Availability[] = [];
     let current: Availability | null = null;
@@ -130,21 +105,27 @@ export function ScheduleDialog({
       const availEntries = entries.filter((e) => !e.isBlocked);
       const blockedEntries = entries.filter((e) => e.isBlocked);
 
-      if (blockedEntries.some((e) => {
-        const s = parseInt(e.startTime.split(":")[0]);
-        const en = parseInt(e.endTime.split(":")[0]);
-        return hour >= s && hour < en;
-      })) return "blocked";
+      if (
+        blockedEntries.some((e) => {
+          const s = parseInt(e.startTime.split(":")[0]);
+          const en = parseInt(e.endTime.split(":")[0]);
+          return hour >= s && hour < en;
+        })
+      )
+        return "blocked";
 
-      if (availEntries.some((e) => {
-        const s = parseInt(e.startTime.split(":")[0]);
-        const en = parseInt(e.endTime.split(":")[0]);
-        return hour >= s && hour < en;
-      })) return "available";
+      if (
+        availEntries.some((e) => {
+          const s = parseInt(e.startTime.split(":")[0]);
+          const en = parseInt(e.endTime.split(":")[0]);
+          return hour >= s && hour < en;
+        })
+      )
+        return "available";
 
       return null;
     },
-    [getDayEntries]
+    [getDayEntries],
   );
 
   const toggleHour = useCallback(
@@ -197,7 +178,7 @@ export function ScheduleDialog({
         setDayEntries(day, mergeAdjacentEntries([...entries, newEntry], type));
       }
     },
-    [getDayEntries, isHourMarked, providerId, setDayEntries]
+    [getDayEntries, isHourMarked, providerId, setDayEntries],
   );
 
   const handleMouseDown = (hour: number, type: "available" | "blocked") => {
@@ -220,9 +201,7 @@ export function ScheduleDialog({
     }
   };
 
-  const applyPreset = (
-    preset: "9-5" | "9-5-lunch" | "10-6" | "8-6" | "closed"
-  ) => {
+  const applyPreset = (preset: "9-5" | "9-5-lunch" | "10-6" | "8-6" | "closed") => {
     const entries: Availability[] = [];
     const baseId = generateId();
 
@@ -238,9 +217,34 @@ export function ScheduleDialog({
       });
     } else if (preset === "9-5-lunch") {
       entries.push(
-        { id: `${baseId}-1`, providerId, weekday: selectedDay, startTime: "09:00", endTime: "12:00", slotMinutes: 30, bufferMinutes: 0 },
-        { id: `${baseId}-2`, providerId, weekday: selectedDay, startTime: "12:00", endTime: "13:00", slotMinutes: 30, bufferMinutes: 0, isBlocked: true },
-        { id: `${baseId}-3`, providerId, weekday: selectedDay, startTime: "13:00", endTime: "17:00", slotMinutes: 30, bufferMinutes: 0 }
+        {
+          id: `${baseId}-1`,
+          providerId,
+          weekday: selectedDay,
+          startTime: "09:00",
+          endTime: "12:00",
+          slotMinutes: 30,
+          bufferMinutes: 0,
+        },
+        {
+          id: `${baseId}-2`,
+          providerId,
+          weekday: selectedDay,
+          startTime: "12:00",
+          endTime: "13:00",
+          slotMinutes: 30,
+          bufferMinutes: 0,
+          isBlocked: true,
+        },
+        {
+          id: `${baseId}-3`,
+          providerId,
+          weekday: selectedDay,
+          startTime: "13:00",
+          endTime: "17:00",
+          slotMinutes: 30,
+          bufferMinutes: 0,
+        },
       );
     } else if (preset === "10-6") {
       entries.push({
@@ -333,7 +337,9 @@ export function ScheduleDialog({
                   }`}
                 >
                   <span className="text-xs font-medium">{WEEKDAY_LABELS[day]}</span>
-                  <div className={`h-2 w-2 rounded-full ${hasAvailability ? "bg-success" : "bg-muted-foreground/30"}`} />
+                  <div
+                    className={`h-2 w-2 rounded-full ${hasAvailability ? "bg-success" : "bg-muted-foreground/30"}`}
+                  />
                 </button>
               );
             })}
@@ -360,8 +366,7 @@ export function ScheduleDialog({
                   className="h-7 gap-1 rounded-full border-primary/30 px-3 text-[10px] text-primary hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
                   onClick={() => applyPreset("9-5")}
                 >
-                  <Clock className="h-3 w-3" />
-                  9 AM - 5 PM
+                  <Clock className="h-3 w-3" />9 AM - 5 PM
                 </Button>
                 <Button
                   variant="outline"
@@ -369,8 +374,7 @@ export function ScheduleDialog({
                   className="h-7 gap-1 rounded-full border-primary/30 px-3 text-[10px] text-primary hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
                   onClick={() => applyPreset("8-6")}
                 >
-                  <Clock className="h-3 w-3" />
-                  8 AM - 6 PM
+                  <Clock className="h-3 w-3" />8 AM - 6 PM
                 </Button>
                 <Button
                   variant="outline"
@@ -430,8 +434,8 @@ export function ScheduleDialog({
                               status === "available"
                                 ? "bg-success/20 border-success/40 hover:bg-success/30 hover:border-success/60"
                                 : status === "blocked"
-                                ? "bg-destructive/20 border-destructive/40 hover:bg-destructive/30 hover:border-destructive/60"
-                                : "bg-secondary/30 border-border/60 hover:border-primary/40 hover:bg-primary/5"
+                                  ? "bg-destructive/20 border-destructive/40 hover:bg-destructive/30 hover:border-destructive/60"
+                                  : "bg-secondary/30 border-border/60 hover:border-primary/40 hover:bg-primary/5"
                             }`}
                             onMouseDown={(e) => {
                               e.preventDefault();
@@ -443,12 +447,8 @@ export function ScheduleDialog({
                             }}
                             onMouseEnter={() => handleMouseEnter(hour)}
                           >
-                            {status === "available" && (
-                              <Check className="h-3.5 w-3.5 text-success mx-auto" />
-                            )}
-                            {status === "blocked" && (
-                              <CalendarOff className="h-3.5 w-3.5 text-destructive mx-auto" />
-                            )}
+                            {status === "available" && <Check className="h-3.5 w-3.5 text-success mx-auto" />}
+                            {status === "blocked" && <CalendarOff className="h-3.5 w-3.5 text-destructive mx-auto" />}
                           </button>
                         </div>
                       );
@@ -469,7 +469,13 @@ export function ScheduleDialog({
             <Separator orientation="vertical" className="h-4" />
             <span>Drag to select multiple hours</span>
           </div>
-          <Button onClick={() => { onSave(); onOpenChange(false); }} className="rounded-full h-10 px-6 gap-2">
+          <Button
+            onClick={() => {
+              onSave();
+              onOpenChange(false);
+            }}
+            className="rounded-full h-10 px-6 gap-2"
+          >
             <Check className="h-4 w-4" />
             Save Schedule
           </Button>

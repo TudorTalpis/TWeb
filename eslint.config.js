@@ -20,7 +20,7 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["error", { allowConstantExport: true, allowExportNames: ["AppProvider", "appReducer", "AppContext", "AppContextValue", "useAppStore"] }],
+      "react-refresh/only-export-components": ["error", { allowConstantExport: true, allowExportNames: ["AppProvider", "appReducer", "AppContext", "AppContextValue", "useAppStore", "useCurrentUser"] }],
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
     },

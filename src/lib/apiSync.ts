@@ -2,10 +2,23 @@
  * API Integration Helper
  *
  * This module provides functions to sync the AppContext state with the backend API.
- * It allows gradual migration from localStorage to API-based data fetching.
+ * It allows gradually migrating from localStorage to API-based data fetching.
  */
 
-import type { AppState, AppAction } from "@/types";
+import type {
+  AppState,
+  AppAction,
+  Category,
+  ProviderProfile,
+  Service,
+  Availability,
+  TimeOff,
+  Booking,
+  ProviderApplication,
+  Review,
+  AppNotification,
+  AppUser,
+} from "@/types";
 import {
   categoriesApi,
   providersApi,
@@ -49,16 +62,16 @@ export async function fetchAppStateFromAPI(): Promise<Partial<AppState>> {
   ]);
 
   return {
-    categories: categories as any,
-    providerProfiles: providers as any,
-    services: services as any,
-    availability: availability as any,
-    timeoff: timeoff as any,
-    bookings: bookings as any,
-    applications: applications as any,
-    reviews: reviews as any,
-    notifications: notifications as any,
-    users: users as any,
+    categories: categories as Category[],
+    providerProfiles: providers as ProviderProfile[],
+    services: services as Service[],
+    availability: availability as Availability[],
+    timeoff: timeoff as TimeOff[],
+    bookings: bookings as Booking[],
+    applications: applications as ProviderApplication[],
+    reviews: reviews as Review[],
+    notifications: notifications as AppNotification[],
+    users: users as AppUser[],
   };
 }
 

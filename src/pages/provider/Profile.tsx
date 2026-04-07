@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,10 +27,8 @@ import {
   Store,
   Image as ImageIcon,
   Save,
-  Pencil,
   Utensils,
-  Copy,
-  CalendarDays,
+  Pencil,
 } from "lucide-react";
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { ScheduleDialog } from "@/components/schedule/ScheduleDialog";
@@ -41,8 +38,7 @@ import { findCategoryByName, normalizeCategory } from "@/lib/categories";
 import type { Availability } from "@/types";
 
 const PENDING_CATEGORY_PREFIX = "pending:";
-const WORKDAY_DAYS = [1, 2, 3, 4, 5]; // Monday to Friday
-const WEEKEND_DAYS = [6, 0]; // Saturday, Sunday
+const WEEKEND_DAYS = [6, 0];
 const ALL_DAYS = [1, 2, 3, 4, 5, 6, 0];
 
 const emptyAvailabilityMap = (): Record<number, Availability[]> => ({
@@ -73,17 +69,17 @@ const ProviderProfilePage = () => {
     name: currentProvider?.name || "",
     slug: currentProvider?.slug || "",
     description: currentProvider?.description || "",
-    categoryIds: currentProvider?.categoryIds || [] as string[],
-    pendingCategoryNames: currentProvider?.pendingCategoryNames || [] as string[],
+    categoryIds: currentProvider?.categoryIds || ([] as string[]),
+    pendingCategoryNames: currentProvider?.pendingCategoryNames || ([] as string[]),
     phone: currentProvider?.phone || "",
     location: currentProvider?.location || "",
     avatar: currentProvider?.avatar || "",
     coverPhoto: currentProvider?.coverPhoto || "",
-    galleryPhotos: currentProvider?.galleryPhotos || [] as string[],
+    galleryPhotos: currentProvider?.galleryPhotos || ([] as string[]),
   });
   const [categoryError, setCategoryError] = useState("");
   const [availabilityByDay, setAvailabilityByDay] = useState<Record<number, Availability[]>>(() =>
-    currentProvider ? buildAvailabilityMap(state.availability, currentProvider.id) : emptyAvailabilityMap()
+    currentProvider ? buildAvailabilityMap(state.availability, currentProvider.id) : emptyAvailabilityMap(),
   );
   const [timeoffForm, setTimeoffForm] = useState({
     date: format(new Date(), "yyyy-MM-dd"),
@@ -93,7 +89,7 @@ const ProviderProfilePage = () => {
     allDay: false,
   });
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [scheduleViewMode, setScheduleViewMode] = useState<"daily" | "weekly">("weekly");
+  const [scheduleViewMode, _setScheduleViewMode] = useState<"daily" | "weekly">("weekly");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -116,7 +112,10 @@ const ProviderProfilePage = () => {
       })),
     [form.pendingCategoryNames],
   );
-  const categoryOptions = useMemo(() => [...state.categories, ...pendingCategoryOptions], [state.categories, pendingCategoryOptions]);
+  const categoryOptions = useMemo(
+    () => [...state.categories, ...pendingCategoryOptions],
+    [state.categories, pendingCategoryOptions],
+  );
   const selectedCategoryIds = useMemo(
     () => [...form.categoryIds, ...pendingCategoryOptions.map((option) => option.id)],
     [form.categoryIds, pendingCategoryOptions],
@@ -155,7 +154,8 @@ const ProviderProfilePage = () => {
     }
   };
 
-  const slugTaken = form.slug.trim().length > 0 &&
+  const slugTaken =
+    form.slug.trim().length > 0 &&
     form.slug.trim().toLowerCase() !== currentProvider.slug.toLowerCase() &&
     state.providerProfiles.some((p) => p.slug.toLowerCase() === form.slug.trim().toLowerCase());
 
@@ -241,7 +241,9 @@ const ProviderProfilePage = () => {
 
   const saveSchedule = () => {
     const updatedAvailability = Object.values(availabilityByDay).flat();
-    const nextAvailability = state.availability.filter((entry) => entry.providerId !== currentProvider.id).concat(updatedAvailability);
+    const nextAvailability = state.availability
+      .filter((entry) => entry.providerId !== currentProvider.id)
+      .concat(updatedAvailability);
     dispatch({ type: "SET_AVAILABILITY", payload: nextAvailability });
   };
 
@@ -261,7 +263,9 @@ const ProviderProfilePage = () => {
       return;
     }
 
-    const existingPending = new Set((currentProvider.pendingCategoryNames ?? []).map((name) => normalizeCategory(name)));
+    const existingPending = new Set(
+      (currentProvider.pendingCategoryNames ?? []).map((name) => normalizeCategory(name)),
+    );
     const newlyProposed = form.pendingCategoryNames.filter((name) => !existingPending.has(normalizeCategory(name)));
 
     dispatch({ type: "UPDATE_PROVIDER_PROFILE", payload: { id: currentProvider.id, ...form } });
@@ -291,7 +295,12 @@ const ProviderProfilePage = () => {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const initials = currentProvider.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const initials = currentProvider.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const weekdayLabels = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const weekdayShortLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const weekdayOrder = [1, 2, 3, 4, 5, 6, 0];
@@ -302,9 +311,8 @@ const ProviderProfilePage = () => {
       const entries = availabilityByDay[weekday] ?? [];
       return {
         label: weekdayShortLabels[weekday],
-        value: entries.length > 0
-          ? entries.map((entry) => `${entry.startTime} - ${entry.endTime}`).join(", ")
-          : "Closed",
+        value:
+          entries.length > 0 ? entries.map((entry) => `${entry.startTime} - ${entry.endTime}`).join(", ") : "Closed",
       };
     });
     const groups: { label: string; value: string }[] = [];
@@ -315,9 +323,7 @@ const ProviderProfilePage = () => {
       while (end + 1 < orderedDays.length && orderedDays[end + 1].value === value) {
         end += 1;
       }
-      const label = index === end
-        ? orderedDays[index].label
-        : `${orderedDays[index].label}-${orderedDays[end].label}`;
+      const label = index === end ? orderedDays[index].label : `${orderedDays[index].label}-${orderedDays[end].label}`;
       groups.push({ label, value });
       index = end + 1;
     }
@@ -364,7 +370,7 @@ const ProviderProfilePage = () => {
   };
 
   // Copy schedule from one day to multiple days
-  const copyDayToSelectedDays = (sourceDay: number) => {
+  const _copyDayToSelectedDays = (sourceDay: number) => {
     const sourceEntries = availabilityByDay[sourceDay] ?? [];
     setAvailabilityByDay((prev) => {
       const next = { ...prev };
@@ -382,7 +388,7 @@ const ProviderProfilePage = () => {
   };
 
   // Copy workday schedule to all weekdays
-  const copyToAllWeekdays = () => {
+  const _copyToAllWeekdays = () => {
     if (selectedDays.length === 0) return;
     const sourceDay = selectedDays[0];
     const sourceEntries = availabilityByDay[sourceDay] ?? [];
@@ -401,7 +407,7 @@ const ProviderProfilePage = () => {
   };
 
   // Copy workdays to weekend or vice versa
-  const copyWorkdaysToWeekend = () => {
+  const _copyWorkdaysToWeekend = () => {
     // Use Monday as source
     const sourceEntries = availabilityByDay[1] ?? [];
     setAvailabilityByDay((prev) => {
@@ -417,7 +423,7 @@ const ProviderProfilePage = () => {
     });
   };
 
-  const setWeekendClosed = () => {
+  const _setWeekendClosed = () => {
     setAvailabilityByDay((prev) => ({
       ...prev,
       6: [],
@@ -426,29 +432,31 @@ const ProviderProfilePage = () => {
   };
 
   const toggleDaySelection = (day: number) => {
-    setSelectedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setSelectedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   };
 
-  const renderDaySchedule = (dayIndex: number, showDayLabel = true) => {
+  const _renderDaySchedule = (dayIndex: number, showDayLabel = true) => {
     const entries = availabilityByDay[dayIndex] ?? [];
     const isSelected = selectedDays.includes(dayIndex);
 
     return (
-      <div key={dayIndex} className={`rounded-lg border p-4 space-y-3 transition-colors ${isSelected ? "border-primary bg-primary/5" : ""}`}>
+      <div
+        key={dayIndex}
+        className={`rounded-lg border p-4 space-y-3 transition-colors ${isSelected ? "border-primary bg-primary/5" : ""}`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {scheduleViewMode === "weekly" && (
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => toggleDaySelection(dayIndex)}
-              />
+              <Checkbox checked={isSelected} onCheckedChange={() => toggleDaySelection(dayIndex)} />
             )}
-            <div className={`h-2 w-2 rounded-full ${entries.length === 0 ? "bg-muted-foreground/30" : "bg-green-500"}`} />
+            <div
+              className={`h-2 w-2 rounded-full ${entries.length === 0 ? "bg-muted-foreground/30" : "bg-green-500"}`}
+            />
             {showDayLabel && <p className="text-sm font-semibold">{weekdayLabels[dayIndex]}</p>}
             {entries.length === 0 && (
-              <Badge variant="secondary" className="text-xs">Closed</Badge>
+              <Badge variant="secondary" className="text-xs">
+                Closed
+              </Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -489,9 +497,13 @@ const ProviderProfilePage = () => {
           <div className="space-y-2">
             {entries.map((entry, slotIndex) => {
               const isBlocked = entry.isBlocked === true;
-              const isLunch = !isBlocked && entry.startTime >= "11:00" && entry.startTime <= "14:00" && entry.endTime <= "15:00";
+              const isLunch =
+                !isBlocked && entry.startTime >= "11:00" && entry.startTime <= "14:00" && entry.endTime <= "15:00";
               return (
-                <div key={entry.id} className={`flex items-center gap-2 p-3 rounded-md ${isBlocked ? "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800" : isLunch ? "bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800" : "bg-muted/50"}`}>
+                <div
+                  key={entry.id}
+                  className={`flex items-center gap-2 p-3 rounded-md ${isBlocked ? "bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800" : isLunch ? "bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800" : "bg-muted/50"}`}
+                >
                   {isBlocked && <CalendarOff className="h-4 w-4 text-red-600" />}
                   {isLunch && <Utensils className="h-4 w-4 text-orange-600" />}
                   <Input
@@ -514,7 +526,9 @@ const ProviderProfilePage = () => {
                         min={5}
                         step={5}
                         value={entry.slotMinutes}
-                        onChange={(e) => updateAvailabilityEntry(dayIndex, slotIndex, { slotMinutes: Number(e.target.value) || 0 })}
+                        onChange={(e) =>
+                          updateAvailabilityEntry(dayIndex, slotIndex, { slotMinutes: Number(e.target.value) || 0 })
+                        }
                         className="h-9 w-20"
                         placeholder="Duration"
                       />
@@ -522,7 +536,9 @@ const ProviderProfilePage = () => {
                     </div>
                   )}
                   {isBlocked && (
-                    <Badge variant="secondary" className="text-xs ml-2">Blocked</Badge>
+                    <Badge variant="secondary" className="text-xs ml-2">
+                      Blocked
+                    </Badge>
                   )}
                   <Button
                     type="button"
@@ -553,7 +569,11 @@ const ProviderProfilePage = () => {
             onClick={() => coverInputRef.current?.click()}
           >
             {form.coverPhoto ? (
-              <img src={form.coverPhoto} alt="Cover" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+              <img
+                src={form.coverPhoto}
+                alt="Cover"
+                className="h-full w-full object-cover transition-transform group-hover:scale-105"
+              />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent flex items-center justify-center">
                 <Camera className="h-12 w-12 text-muted-foreground/30" />
@@ -565,7 +585,11 @@ const ProviderProfilePage = () => {
                 <span className="text-sm font-medium">Change Cover</span>
               </div>
             </div>
-            <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
               onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "cover")}
             />
           </button>
@@ -589,7 +613,11 @@ const ProviderProfilePage = () => {
                   <Camera className="h-5 w-5 text-white" />
                 </div>
               </div>
-              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden"
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
                 onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "avatar")}
               />
             </button>
@@ -631,9 +659,7 @@ const ProviderProfilePage = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Business Information</CardTitle>
-                    <CardDescription>
-                      Update your business details and contact information
-                    </CardDescription>
+                    <CardDescription>Update your business details and contact information</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
@@ -744,9 +770,7 @@ const ProviderProfilePage = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle>Working Hours</CardTitle>
-                        <CardDescription>
-                          Set your weekly availability and time off
-                        </CardDescription>
+                        <CardDescription>Set your weekly availability and time off</CardDescription>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => setScheduleDialogOpen(true)} className="gap-2">
                         <Pencil className="h-4 w-4" />
@@ -757,12 +781,19 @@ const ProviderProfilePage = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {scheduleSummary.map((item) => (
-                        <div key={`${item.label}-${item.value}`} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div
+                          key={`${item.label}-${item.value}`}
+                          className="flex items-center justify-between py-2 border-b last:border-0"
+                        >
                           <div className="flex items-center gap-3">
-                            <div className={`h-2 w-2 rounded-full ${item.value === "Closed" ? "bg-muted-foreground/30" : "bg-green-500"}`} />
+                            <div
+                              className={`h-2 w-2 rounded-full ${item.value === "Closed" ? "bg-muted-foreground/30" : "bg-green-500"}`}
+                            />
                             <span className="text-sm font-medium">{item.label}</span>
                           </div>
-                          <span className={`text-sm ${item.value === "Closed" ? "text-muted-foreground" : "text-foreground"}`}>
+                          <span
+                            className={`text-sm ${item.value === "Closed" ? "text-muted-foreground" : "text-foreground"}`}
+                          >
                             {item.value}
                           </span>
                         </div>
@@ -787,9 +818,7 @@ const ProviderProfilePage = () => {
                           <CalendarOff className="h-5 w-5" />
                           Time Off
                         </CardTitle>
-                        <CardDescription>
-                          Manage your upcoming time off
-                        </CardDescription>
+                        <CardDescription>Manage your upcoming time off</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -904,9 +933,7 @@ const ProviderProfilePage = () => {
                         <div className="text-center py-8 text-muted-foreground">
                           <CalendarOff className="h-10 w-10 mx-auto mb-2 opacity-50" />
                           <p className="text-sm">No time off scheduled</p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">
-                            Add dates when you'll be unavailable
-                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">Add dates when you'll be unavailable</p>
                         </div>
                       )}
                     </div>
@@ -920,9 +947,7 @@ const ProviderProfilePage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Photo Gallery</CardTitle>
-                  <CardDescription>
-                    Showcase your business with up to 6 photos
-                  </CardDescription>
+                  <CardDescription>Showcase your business with up to 6 photos</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {form.galleryPhotos.length > 0 && (
@@ -950,11 +975,11 @@ const ProviderProfilePage = () => {
                     <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg">
                       <ImageIcon className="h-12 w-12 text-muted-foreground/30 mb-3" />
                       <h3 className="text-sm font-medium mb-1">
-                        {form.galleryPhotos.length === 0 ? "No photos yet" : `Add ${6 - form.galleryPhotos.length} more photo${6 - form.galleryPhotos.length > 1 ? "s" : ""}`}
+                        {form.galleryPhotos.length === 0
+                          ? "No photos yet"
+                          : `Add ${6 - form.galleryPhotos.length} more photo${6 - form.galleryPhotos.length > 1 ? "s" : ""}`}
                       </h3>
-                      <p className="text-xs text-muted-foreground mb-4">
-                        Upload high-quality photos of your business
-                      </p>
+                      <p className="text-xs text-muted-foreground mb-4">Upload high-quality photos of your business</p>
                       <Button variant="outline" className="gap-2" onClick={() => galleryInputRef.current?.click()}>
                         <ImagePlus className="h-4 w-4" />
                         Upload Photos

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   BarChart,
@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/booking";
 import { generateId } from "@/lib/storage";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n } from "@/store/I18nContext";
+import { useI18n } from "@/store/useI18n";
 import { convertAndFormat } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { toLocalDateKey } from "@/lib/date";
@@ -84,14 +84,14 @@ const Dashboard = () => {
   const { state, dispatch, currentProvider, hasRole, currency } = useAppStore();
   const { t } = useI18n();
 
+  const [reviewModal, setReviewModal] = useState<string | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
   // If user is a PROVIDER with a profile, redirect to provider dashboard
   if (hasRole(["PROVIDER"]) && currentProvider) {
     return <Navigate to="/provider/dashboard" replace />;
   }
-
-  const [reviewModal, setReviewModal] = useState<string | null>(null);
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
 
   const userId = state.session.userId;
   const bookings = state.bookings.filter((b) => b.userId === userId);
@@ -103,7 +103,10 @@ const Dashboard = () => {
   const past = bookings.filter((b) => b.date < today || (b.status !== "CONFIRMED" && b.status !== "PENDING"));
   const completed = bookings.filter((b) => b.status === "COMPLETED");
 
-  const totalSpent = completed.reduce((sum, b) => sum + (state.services.find((s) => s.id === b.serviceId)?.price || 0), 0);
+  const totalSpent = completed.reduce(
+    (sum, b) => sum + (state.services.find((s) => s.id === b.serviceId)?.price || 0),
+    0,
+  );
   const uniqueProviders = new Set(bookings.map((b) => b.providerId)).size;
 
   const statusSummary = [
@@ -153,7 +156,10 @@ const Dashboard = () => {
 
     return {
       total: periodBookings.length,
-      spent: periodCompleted.reduce((sum, booking) => sum + (state.services.find((s) => s.id === booking.serviceId)?.price || 0), 0),
+      spent: periodCompleted.reduce(
+        (sum, booking) => sum + (state.services.find((s) => s.id === booking.serviceId)?.price || 0),
+        0,
+      ),
       providers: new Set(periodBookings.map((booking) => booking.providerId)).size,
       reviews: periodReviews.length,
     };
@@ -324,7 +330,14 @@ const Dashboard = () => {
             <div className="mt-2 h-12 rounded-xl bg-background/30 px-1">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={card.series}>
-                  <Line type="monotone" dataKey="value" stroke={card.lineColor} strokeWidth={2.2} dot={false} connectNulls />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={card.lineColor}
+                    strokeWidth={2.2}
+                    dot={false}
+                    connectNulls
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -359,7 +372,15 @@ const Dashboard = () => {
               <div className="relative h-[210px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={statusData} dataKey="value" innerRadius={52} outerRadius={84} paddingAngle={0} stroke="none" strokeWidth={0}>
+                    <Pie
+                      data={statusData}
+                      dataKey="value"
+                      innerRadius={52}
+                      outerRadius={84}
+                      paddingAngle={0}
+                      stroke="none"
+                      strokeWidth={0}
+                    >
                       {statusData.map((item) => (
                         <Cell key={item.name} fill={item.color} />
                       ))}
@@ -370,7 +391,9 @@ const Dashboard = () => {
                         return (
                           <div className={TOOLTIP_CLASS}>
                             <p className="font-medium">{String(payload[0].name)}</p>
-                            <p className="text-muted-foreground">{Number(payload[0].value).toLocaleString()} bookings</p>
+                            <p className="text-muted-foreground">
+                              {Number(payload[0].value).toLocaleString()} bookings
+                            </p>
                           </div>
                         );
                       }}
@@ -387,9 +410,15 @@ const Dashboard = () => {
 
               <div className="grid gap-2">
                 {statusSummary.map((item) => (
-                  <div key={item.status} className="flex items-center justify-between rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-xs">
+                  <div
+                    key={item.status}
+                    className="flex items-center justify-between rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-xs"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: statusColors[item.status] }} />
+                      <span
+                        className="h-2.5 w-2.5 rounded-[3px]"
+                        style={{ backgroundColor: statusColors[item.status] }}
+                      />
                       <span className="text-muted-foreground">{item.label}</span>
                     </div>
                     <span className="font-semibold tabular-nums">{item.count}</span>
@@ -511,11 +540,7 @@ const Dashboard = () => {
               <label className="mb-3 block text-sm font-semibold text-foreground">{t("review.rating")}</label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="transition-all hover:scale-110"
-                  >
+                  <button key={star} onClick={() => setRating(star)} className="transition-all hover:scale-110">
                     <Star
                       className={`h-7 w-7 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`}
                     />
@@ -537,9 +562,7 @@ const Dashboard = () => {
             <Button variant="ghost" onClick={() => setReviewModal(null)}>
               {t("book.cancel")}
             </Button>
-            <Button onClick={() => reviewModal && handleReviewSubmit(reviewModal)}>
-              {t("review.submit")}
-            </Button>
+            <Button onClick={() => reviewModal && handleReviewSubmit(reviewModal)}>{t("review.submit")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

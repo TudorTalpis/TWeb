@@ -1,8 +1,21 @@
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { useAppStore } from "@/store/AppContext";
-import { convertAndFormat, convertFromMDL } from "@/lib/currency";
+import { convertAndFormat } from "@/lib/currency";
 import { ArrowDownRight, ArrowUpRight, BookOpen, DollarSign, Minus, Star, Users } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { cn } from "@/lib/utils";
 
 function formatDateKey(date: Date): string {
@@ -18,7 +31,8 @@ function toMinutes(value: string): number | null {
 
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
-  if (Number.isNaN(hours) || Number.isNaN(minutes) || hours < 0 || hours > 24 || minutes < 0 || minutes > 59) return null;
+  if (Number.isNaN(hours) || Number.isNaN(minutes) || hours < 0 || hours > 24 || minutes < 0 || minutes > 59)
+    return null;
   if (hours === 24 && minutes !== 0) return null;
 
   return hours * 60 + minutes;
@@ -55,8 +69,7 @@ function getTrendDelta(series: number[]) {
   return { direction: "flat" as const, percent: 0 };
 }
 
-const PANEL_CLASS =
-  "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const tooltipClass = "rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur";
 
@@ -122,14 +135,15 @@ const ProviderDashboard = () => {
   const serviceBookingsData = providerServices
     .map((service) => ({
       service: service.title,
-      bookings: providerBookings.filter((booking) => booking.serviceId === service.id && booking.status !== "CANCELLED").length,
+      bookings: providerBookings.filter((booking) => booking.serviceId === service.id && booking.status !== "CANCELLED")
+        .length,
     }))
     .sort((a, b) => b.bookings - a.bookings);
   const hasServices = providerServices.length > 0;
 
   const trendWeekStarts = Array.from({ length: 8 }, (_, index) => {
     const start = new Date(weekStart);
-    start.setDate(weekStart.getDate() - (7 * (7 - index)));
+    start.setDate(weekStart.getDate() - 7 * (7 - index));
     return start;
   });
   const trendWeeks = trendWeekStarts.map((start) => {
@@ -225,7 +239,14 @@ const ProviderDashboard = () => {
               <div className="mt-2 h-12 rounded-xl bg-background/30 px-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={card.series}>
-                    <Line type="monotone" dataKey="value" stroke={card.lineColor} strokeWidth={2.2} dot={false} connectNulls />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke={card.lineColor}
+                      strokeWidth={2.2}
+                      dot={false}
+                      connectNulls
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -279,7 +300,9 @@ const ProviderDashboard = () => {
                           return (
                             <div className={tooltipClass}>
                               <p className="font-medium">{String(payload[0].name)}</p>
-                              <p className="text-muted-foreground">{Number(payload[0].value).toLocaleString()} clients</p>
+                              <p className="text-muted-foreground">
+                                {Number(payload[0].value).toLocaleString()} clients
+                              </p>
                             </div>
                           );
                         }}
@@ -296,7 +319,10 @@ const ProviderDashboard = () => {
 
                 <div className="grid gap-2">
                   {clientMixData.map((item) => (
-                    <div key={item.name} className="flex items-center justify-between rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-xs">
+                    <div
+                      key={item.name}
+                      className="flex items-center justify-between rounded-lg border border-border/60 bg-background/25 px-3 py-2 text-xs"
+                    >
                       <div className="flex items-center gap-2">
                         <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: item.color }} />
                         <span className="text-muted-foreground">{item.name}</span>
@@ -318,8 +344,14 @@ const ProviderDashboard = () => {
                 <p className="text-xs text-muted-foreground">Booked time vs free time (current week)</p>
               </div>
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-primary" />Booked</span>
-                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-muted-foreground/40" />Free</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-[3px] bg-primary" />
+                  Booked
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-[3px] bg-muted-foreground/40" />
+                  Free
+                </span>
               </div>
             </div>
 
@@ -329,7 +361,12 @@ const ProviderDashboard = () => {
                   <BarChart data={weekCapacityData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.35} />
                     <XAxis dataKey="day" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value) => `${value}h`} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(value) => `${value}h`}
+                    />
                     <Tooltip
                       content={({ active, payload, label }) => {
                         if (!active || !payload?.length) return null;
@@ -345,8 +382,20 @@ const ProviderDashboard = () => {
                         );
                       }}
                     />
-                    <Bar dataKey="bookedHours" name="Booked" stackId="time" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="freeHours" name="Free" stackId="time" fill="hsl(var(--muted-foreground) / 0.35)" radius={[0, 0, 0, 0]} />
+                    <Bar
+                      dataKey="bookedHours"
+                      name="Booked"
+                      stackId="time"
+                      fill="hsl(var(--primary))"
+                      radius={[0, 0, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="freeHours"
+                      name="Free"
+                      stackId="time"
+                      fill="hsl(var(--muted-foreground) / 0.35)"
+                      radius={[0, 0, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -373,7 +422,9 @@ const ProviderDashboard = () => {
                       tick={{ fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
-                      tickFormatter={(value) => (String(value).length > 18 ? `${String(value).slice(0, 18)}...` : String(value))}
+                      tickFormatter={(value) =>
+                        String(value).length > 18 ? `${String(value).slice(0, 18)}...` : String(value)
+                      }
                     />
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                     <Tooltip
@@ -388,7 +439,13 @@ const ProviderDashboard = () => {
                         );
                       }}
                     />
-                    <Bar dataKey="bookings" name="Bookings" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} maxBarSize={56} />
+                    <Bar
+                      dataKey="bookings"
+                      name="Bookings"
+                      fill="hsl(var(--primary))"
+                      radius={[8, 8, 0, 0]}
+                      maxBarSize={56}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

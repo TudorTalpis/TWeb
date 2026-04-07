@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n, LANGUAGE_OPTIONS } from "@/store/I18nContext";
+import { useI18n } from "@/store/useI18n";
+import { LANGUAGE_OPTIONS } from "@/store/language-options";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
