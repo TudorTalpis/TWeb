@@ -71,6 +71,7 @@ export interface Availability {
   endTime: string; // "17:00"
   slotMinutes: number;
   bufferMinutes: number;
+  isBlocked?: boolean; // true = blocked range (e.g. lunch), false = availability window
 }
 
 // ============ TIME OFF ============

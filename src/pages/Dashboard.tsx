@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import { Link } from "react-router-dom";
+﻿import { useState, useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -80,8 +80,13 @@ function getTrendDelta(series: number[]) {
 }
 
 const Dashboard = () => {
-  const { state, dispatch } = useAppStore();
+  const { state, dispatch, currentProvider, hasRole } = useAppStore();
   const { t } = useI18n();
+
+  // If user is a PROVIDER with a profile, redirect to provider dashboard
+  if (hasRole(["PROVIDER"]) && currentProvider) {
+    return <Navigate to="/provider/dashboard" replace />;
+  }
 
   const [reviewModal, setReviewModal] = useState<string | null>(null);
   const [rating, setRating] = useState(5);

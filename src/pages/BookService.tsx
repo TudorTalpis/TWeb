@@ -68,7 +68,7 @@ const BookService = () => {
   const bookingWindowMinutes = Math.max(5, (service?.duration ?? 0) + serviceBufferMinutes);
 
   const slots = selectedDate
-      ? generateSlots(selectedDate, providerAvail, providerBookings, providerTimeoff, bookingWindowMinutes).filter((slot) => {
+      ? generateSlots(selectedDate, providerAvail, providerBookings, providerTimeoff, service.duration, serviceBufferMinutes).filter((slot) => {
         if (selectedDate !== todayStr) return true;
         const slotDateTime = new Date(`${selectedDate}T${slot.startTime}:00`);
         const minBookableTime = new Date(Date.now() + MIN_LEAD_MINUTES * 60 * 1000);
