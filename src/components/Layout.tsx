@@ -20,8 +20,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </div>
                         <p className="text-xs text-muted-foreground">{t("footer.copy")}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.privacy")}</Link>
-                            <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.terms")}</Link>
+                            <Link to="/about#privacy" className="link-underline hover:text-foreground transition-colors">{t("footer.privacy")}</Link>
+                            <Link to="/about#terms" className="link-underline hover:text-foreground transition-colors">{t("footer.terms")}</Link>
                             <Link to="/about" className="link-underline hover:text-foreground transition-colors">{t("footer.about")}</Link>
                         </div>
                     </div>

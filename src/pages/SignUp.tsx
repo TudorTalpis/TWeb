@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { generateId } from "@/lib/storage";
 import type { AppUser } from "@/types";
 
 const SignUp = (): JSX.Element => {
     const { state, dispatch } = useAppStore();
     const { t } = useI18n();
+    const { toast } = useToast();
     const navigate = useNavigate();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -66,7 +67,7 @@ const SignUp = (): JSX.Element => {
         };
         dispatch({ type: "ADD_USER", payload: newUser });
         dispatch({ type: "LOGIN", payload: { userId: newUser.id } });
-        toast.success(`Welcome, ${newUser.name}!`);
+        toast({ title: `Welcome, ${newUser.name}!` });
         navigate("/");
     };
 

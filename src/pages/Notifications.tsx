@@ -25,7 +25,9 @@ const Notifications = () => {
   const { state, dispatch } = useAppStore();
   const navigate = useNavigate();
   const userId = state.session.userId;
-  const role = state.session.role;
+  // Use the user's actual role from the users array, not the stale session role
+  const currentUser = userId ? state.users.find((u) => u.id === userId) : null;
+  const role = currentUser?.role ?? state.session.role;
   const notifications = state.notifications.filter((n) => n.userId === userId);
   const unreadCount = notifications.filter((n) => !n.read).length;
 

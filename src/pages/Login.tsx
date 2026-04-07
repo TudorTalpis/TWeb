@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Eye, EyeOff, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import type { AppUser } from "@/types";
 
 interface LoginLocationState {
@@ -17,6 +17,7 @@ interface LoginLocationState {
 const Login = (): JSX.Element => {
   const { state, dispatch } = useAppStore();
   const { t } = useI18n();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as LoginLocationState | null)?.from || "/";
@@ -36,22 +37,31 @@ const Login = (): JSX.Element => {
     );
     if (!user || user.password !== password) { setError(t("auth.error.invalidCredentials")); return; }
     dispatch({ type: "LOGIN", payload: { userId: user.id } });
-    toast.success(`Welcome back, ${user.name}!`);
-    navigate(from);
+    toast({ title: `Welcome back, ${user.name}!` });
+
+    // Redirect to role-appropriate dashboard
+    const providerProfile = state.providerProfiles.find((p) => p.userId === user.id);
+    if (user.role === "PROVIDER" && providerProfile) {
+      navigate("/provider/dashboard");
+    } else if (user.role === "ADMIN") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate(from);
+    }
   };
 
   const handleGoogleLogin = () => {
     const user = state.users.find((u) => u.role === "USER");
     if (user) {
       dispatch({ type: "LOGIN", payload: { userId: user.id } });
-      toast.success(`Signed in with Google as ${user.name}`);
+      toast({ title: `Signed in with Google as ${user.name}` });
       navigate(from);
     }
   };
 
   return (
-      <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
-        <div className="relative w-full max-w-md animate-fade-in">
+    <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
+      <div className="relative w-full max-w-md animate-fade-in">
           <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
             <div className="text-center mb-8">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">

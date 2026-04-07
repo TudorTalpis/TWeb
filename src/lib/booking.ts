@@ -34,40 +34,63 @@ export function generateSlots(
   availability: Availability[],
   bookings: Booking[],
   timeoffs: TimeOff[],
-  requiredMinutes?: number
+  serviceDuration: number,
+  serviceBuffer: number
 ): TimeSlot[] {
   const dow = getDayOfWeek(date);
-  const dayAvail = availability.filter((a) => a.weekday === dow);
+  const dayAvail = availability.filter((a) => a.weekday === dow && !a.isBlocked);
   if (dayAvail.length === 0) return [];
 
   const dayBookings = bookings.filter((b) => b.date === date && b.status !== "CANCELLED");
   const dayTimeoffs = timeoffs.filter((t) => t.date === date);
+  const dayBlocked = availability.filter((a) => a.weekday === dow && a.isBlocked);
 
   const slots: TimeSlot[] = [];
 
   for (const avail of dayAvail) {
-    const start = timeToMinutes(avail.startTime);
-    const end = timeToMinutes(avail.endTime);
-    const slotSize = Math.max(5, requiredMinutes ?? avail.slotMinutes);
-    const step = avail.slotMinutes + avail.bufferMinutes;
+    const availStart = timeToMinutes(avail.startTime);
+    const availEnd = timeToMinutes(avail.endTime);
 
-    for (let t = start; t + slotSize <= end; t += step) {
-      const slotStart = minutesToTime(t);
-      const slotEnd = minutesToTime(t + slotSize);
+    // Sort blocked ranges for this availability window
+    const blockedRanges = dayBlocked
+      .filter((b) => b.startTime < avail.endTime && b.endTime > avail.startTime)
+      .map((b) => ({ start: timeToMinutes(b.startTime), end: timeToMinutes(b.endTime) }))
+      .sort((a, b) => a.start - b.start);
 
-      // Check booking overlap
-      const booked = dayBookings.some((b) => bookingBlocksSlot(t, t + slotSize, b));
-      if (booked) continue;
-
-      // Check time-off overlap
-      const offed = dayTimeoffs.some((to) => {
+    // Also get time-off blocks for this date
+    const timeoffRanges = dayTimeoffs
+      .filter((to) => {
         const ts = timeToMinutes(to.startTime);
         const te = timeToMinutes(to.endTime);
-        return t < te && t + slotSize > ts;
-      });
-      if (offed) continue;
+        return ts < availEnd && te > availStart;
+      })
+      .map((to) => ({ start: timeToMinutes(to.startTime), end: timeToMinutes(to.endTime) }));
 
-      slots.push({ startTime: slotStart, endTime: slotEnd });
+    // Combine all blocked ranges
+    const allBlocked = [...blockedRanges, ...timeoffRanges].sort((a, b) => a.start - b.start);
+
+    // Start at the beginning of availability range
+    let currentTime = availStart;
+
+    while (currentTime + serviceDuration <= availEnd) {
+      const slotEnd = currentTime + serviceDuration;
+
+      // Check if this slot overlaps with any blocked range
+      const overlapsBlocked = allBlocked.some((block) => currentTime < block.end && slotEnd > block.start);
+      
+      // Check if this slot overlaps with any booking
+      const overlapsBooking = dayBookings.some((b) => bookingBlocksSlot(currentTime, slotEnd, b));
+
+      // Only add slot if no overlaps
+      if (!overlapsBlocked && !overlapsBooking) {
+        slots.push({
+          startTime: minutesToTime(currentTime),
+          endTime: minutesToTime(slotEnd),
+        });
+      }
+
+      // Increment by (duration + buffer)
+      currentTime += serviceDuration + serviceBuffer;
     }
   }
 

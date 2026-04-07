@@ -12,6 +12,12 @@ const ProviderPage = () => {
   const { providerSlug } = useParams();
   const { state, hasRole } = useAppStore();
 
+  // Resolve the user's actual role from the users array
+  const currentUser = state.session.userId
+    ? state.users.find((u) => u.id === state.session.userId)
+    : null;
+  const actualRole = currentUser?.role ?? state.session.role;
+
   const provider = state.providerProfiles.find((p) => p.slug === providerSlug)
       || state.providerProfiles.find((p) => p.id === providerSlug);
 
@@ -122,7 +128,7 @@ const ProviderPage = () => {
                           </span>
                         </div>
                       </div>
-                      {(hasRole(["USER", "PROVIDER"]) || state.session.role === "GUEST") && (
+                      {(hasRole(["USER", "PROVIDER"]) || actualRole === "GUEST") && (
                           <Link to={`/book/${provider.id}/${svc.id}`} className="ml-4">
                             <Button size="sm" className="rounded-xl bg-primary text-white h-9 px-4 text-xs font-semibold">
                               <Zap className="h-3 w-3 mr-1" />Book

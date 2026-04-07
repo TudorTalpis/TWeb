@@ -14,17 +14,14 @@ interface PanelLayoutProps {
 export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProps) {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [collapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const SidebarContent = () => (
       <>
-        {!collapsed && (
-            <div className="px-4 py-4 border-b border-border/50">
-              <p className="font-display text-xs font-bold text-foreground">{title}</p>
-              {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
-            </div>
-        )}
+        <div className="px-4 py-4 border-b border-border/50">
+          <p className="font-display text-xs font-bold text-foreground">{title}</p>
+          {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
+        </div>
         <nav className="flex-1 p-2 space-y-0.5">
           {tabs.map((tab) => {
             const active = location.pathname === tab.to;
@@ -33,7 +30,6 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
                     key={tab.to}
                     to={tab.to}
                     onClick={() => isMobile && setMobileOpen(false)}
-                    title={collapsed && !isMobile ? tab.label : undefined}
                     className={cn(
                         "flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-xs font-medium transition-all duration-200",
                         active
@@ -42,7 +38,7 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
                     )}
                 >
                   <tab.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
-                  {(!collapsed || isMobile) && <span>{tab.label}</span>}
+                  <span>{tab.label}</span>
                 </Link>
             );
           })}
@@ -103,10 +99,7 @@ export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProp
       <div className="animate-fade-in">
         <div className="flex min-h-[calc(100vh-4rem)]">
           <aside
-              className={cn(
-                  "sticky top-16 self-start shrink-0 border-r border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 flex flex-col",
-                  collapsed ? "w-14" : "w-56"
-              )}
+              className="sticky top-16 self-start shrink-0 w-56 border-r border-border/50 bg-card/50 backdrop-blur-sm flex flex-col"
               style={{ height: "calc(100vh - 4rem)" }}
           >
             <SidebarContent />

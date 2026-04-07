@@ -9,7 +9,7 @@ import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const ROLE_COLORS: Record<Role, string> = {
   ADMIN: "bg-purple-500/15 text-purple-500 border-purple-500/30",
@@ -75,7 +75,7 @@ const AdminUserDetail = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <Link to="/admin/users">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Users

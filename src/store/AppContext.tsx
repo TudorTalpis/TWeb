@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
+import React, { createContext, useContext, useReducer, useEffect, useRef, type ReactNode } from "react";
 import type { AppState, AppAction, Role } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
 import { isHourOccupied } from "@/lib/booking";
 import { normalizeCategory } from "@/lib/categories";
 
-function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "SET_STATE":
       return { ...action.payload };
@@ -170,11 +170,21 @@ function getInitialState(): AppState {
     type RawProviderProfile = Partial<AppState["providerProfiles"][number]> & { categoryId?: string };
     type RawApplication = Partial<AppState["applications"][number]> & { categoryId?: string };
     type RawService = Partial<AppState["services"][number]>;
+    type RawUser = Partial<AppState["users"][number]>;
 
-    // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
+    // Merge seed users (with passwords) with saved user data (without passwords for security)
+    // Passwords are intentionally NOT stored in localStorage for security
     const seedById = new Map(seed.users.map((u) => [u.id, u]));
-    const savedUsers = saved.users;
-    const users = savedUsers.map((u) => ({ ...(seedById.get(u.id) ?? u), phone: (seedById.get(u.id)?.phone ?? u.phone ?? "") }));
+    const savedUsers = saved.users as RawUser[];
+    const users = savedUsers.map((u) => {
+      const seedUser = seedById.get(u.id!);
+      // Always use seed user's password since we don't persist passwords
+      return { 
+        ...(seedUser ?? u), 
+        phone: (seedUser?.phone ?? u.phone ?? ""),
+        password: seedUser?.password ?? "" 
+      };
+    });
     for (const seedUser of seed.users) {
       if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
     }
@@ -240,14 +250,59 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, undefined, getInitialState);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     saveState(state);
   }, [state]);
 
+  // Listen for storage changes from other tabs (e.g. admin approving an application)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (!e.key || !e.newValue) return;
+      const relevantKeys = [
+        "app_session", "app_users", "app_provider_profiles",
+        "app_services", "app_availability", "app_timeoff",
+        "app_bookings", "app_notifications", "app_reviews", "app_categories",
+      ];
+      if (!relevantKeys.includes(e.key)) return;
+
+      try {
+        const saved = loadState();
+        if (!saved) return;
+
+        const currentState = stateRef.current;
+        const merged: AppState = {
+          ...currentState,
+          ...(saved as Partial<AppState>),
+          session: currentState.session.userId
+            ? currentState.session
+            : (saved.session ?? currentState.session),
+        };
+
+        // Re-resolve user's actual role from the updated users array
+        if (merged.session.userId) {
+          const updatedUser = merged.users.find((u) => u.id === merged.session.userId);
+          if (updatedUser && updatedUser.role !== merged.session.role) {
+            merged.session = { userId: updatedUser.id, role: updatedUser.role };
+          }
+        }
+
+        dispatch({ type: "SET_STATE", payload: merged });
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   const currentUser = getCurrentUser(state);
   const currentProvider = getProvider(state);
-  const hasRole = (roles: Role[]) => roles.includes(state.session.role);
+  // Use the user's actual role from the database, not the stale session role
+  const hasRole = (roles: Role[]) => roles.includes(currentUser?.role ?? state.session.role);
 
   const resetData = () => {
     const fresh = createSeedData();

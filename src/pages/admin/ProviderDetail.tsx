@@ -188,7 +188,7 @@ const AdminProviderDetail = () => {
 
   return (
       <AdminPanelLayout>
-        <div className="space-y-6">
+        <div className="animate-fade-in space-y-6">
           {/* Back button */}
           <Button variant="ghost" size="sm" onClick={() => navigate("/admin/providers")} className="gap-1 text-xs text-muted-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> All Providers
