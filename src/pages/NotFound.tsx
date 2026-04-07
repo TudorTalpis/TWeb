@@ -1,13 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    document.title = "404 - Page not found";
-  }, [location.pathname]);
-
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-xl flex-col items-center justify-center px-4 text-center">
       <div className="rounded-2xl border border-border/60 bg-card px-8 py-10 shadow-card">

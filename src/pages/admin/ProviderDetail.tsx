@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
+import { convertAndFormat } from "@/lib/currency";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,7 +19,7 @@ import type { Service } from "@/types";
 const AdminProviderDetail = () => {
   const { providerId } = useParams<{ providerId: string }>();
   const navigate = useNavigate();
-  const { state, dispatch } = useAppStore();
+  const { state, dispatch, currency } = useAppStore();
 
   const provider = state.providerProfiles.find((p) => p.id === providerId);
   const providerServices = state.services.filter((s) => s.providerId === providerId);
@@ -355,7 +356,7 @@ const AdminProviderDetail = () => {
                 { label: "Services", value: providerServices.length },
                 { label: "Bookings", value: providerBookings.length },
                 { label: "Reviews", value: providerReviews.length },
-                { label: "Revenue", value: `$${revenue}` },
+                { label: "Revenue", value: convertAndFormat(revenue, currency) },
               ].map((s) => (
                   <div key={s.label} className="rounded-xl bg-secondary/50 p-3 text-center">
                     <p className="text-xs text-muted-foreground">{s.label}</p>
@@ -388,7 +389,7 @@ const AdminProviderDetail = () => {
                           <p className="text-sm font-medium">{svc.title}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">{svc.description}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            ${svc.price} · {svc.duration}min + {getEffectiveServiceBufferMinutes(svc, provider)}min buffer
+                            {convertAndFormat(svc.price, currency)} · {svc.duration}min + {getEffectiveServiceBufferMinutes(svc, provider)}min buffer
                           </p>
                         </div>
                         <div className="flex gap-1">

@@ -35,6 +35,7 @@ import { formatDate } from "@/lib/booking";
 import { generateId } from "@/lib/storage";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
+import { convertAndFormat } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { toLocalDateKey } from "@/lib/date";
 import type { Booking } from "@/types";
@@ -80,7 +81,7 @@ function getTrendDelta(series: number[]) {
 }
 
 const Dashboard = () => {
-  const { state, dispatch, currentProvider, hasRole } = useAppStore();
+  const { state, dispatch, currentProvider, hasRole, currency } = useAppStore();
   const { t } = useI18n();
 
   // If user is a PROVIDER with a profile, redirect to provider dashboard
@@ -180,7 +181,7 @@ const Dashboard = () => {
     },
     {
       label: "Total spent",
-      value: `$${totalSpent.toLocaleString()}`,
+      value: convertAndFormat(totalSpent, currency),
       icon: DollarSign,
       accent: "text-success bg-success/15",
       lineColor: "hsl(var(--success))",

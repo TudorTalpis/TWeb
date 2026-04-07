@@ -1,5 +1,6 @@
 import { ProviderPanelLayout } from "@/components/ProviderPanelLayout";
 import { useAppStore } from "@/store/AppContext";
+import { convertAndFormat, convertFromMDL } from "@/lib/currency";
 import { ArrowDownRight, ArrowUpRight, BookOpen, DollarSign, Minus, Star, Users } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { cn } from "@/lib/utils";
@@ -60,7 +61,7 @@ const PANEL_CLASS =
 const tooltipClass = "rounded-lg border border-border/70 bg-background/95 px-3 py-2 text-xs shadow-lg backdrop-blur";
 
 const ProviderDashboard = () => {
-  const { state, currentProvider } = useAppStore();
+  const { state, currentProvider, currency } = useAppStore();
   if (!currentProvider) return null;
 
   const providerServices = state.services.filter((service) => service.providerId === currentProvider.id);
@@ -186,7 +187,7 @@ const ProviderDashboard = () => {
     },
     {
       label: "Profits",
-      value: `$${profits.toLocaleString()}`,
+      value: convertAndFormat(profits, currency),
       icon: DollarSign,
       accent: "text-success bg-success/15",
       lineColor: "hsl(var(--success))",
