@@ -8,6 +8,7 @@ import { useAppStore } from "@/store/AppContext";
 import { useI18n } from "@/store/I18nContext";
 import { generateSlots, formatDate, isHourOccupied, type TimeSlot } from "@/lib/booking";
 import { getEffectiveServiceBufferMinutes } from "@/lib/services";
+import { convertAndFormat } from "@/lib/currency";
 import { generateId } from "@/lib/storage";
 import { toLocalDateKey } from "@/lib/date";
 import {
@@ -33,7 +34,7 @@ const MIN_LEAD_MINUTES = 30;
 
 const BookService = () => {
   const { providerId, serviceId } = useParams();
-  const { state, dispatch, currentUser } = useAppStore();
+  const { state, dispatch, currentUser, currency } = useAppStore();
   const { t } = useI18n();
   const navigate = useNavigate();
 
@@ -249,7 +250,7 @@ const BookService = () => {
             <div>
               <h1 className="text-xl font-bold mb-1">{t("book.title")} {service.title}</h1>
               <p className="text-muted-foreground text-sm">
-                ${service.price} | {service.duration} {t("common.min")}
+                {convertAndFormat(service.price, currency)} | {service.duration} {t("common.min")}
                 {serviceBufferMinutes > 0 ? ` + ${serviceBufferMinutes} min buffer` : ""}
               </p>
             </div>
@@ -362,7 +363,7 @@ const BookService = () => {
             {selectedSlot && (
                 <div className="mt-6 pt-4 border-t animate-fade-in">
                   <div className="text-xs text-muted-foreground mb-3">
-                    {formatDate(selectedDate!)} | {selectedSlot.startTime} - {selectedSlot.endTime} | ${service.price}
+                    {formatDate(selectedDate!)} | {selectedSlot.startTime} - {selectedSlot.endTime} | {convertAndFormat(service.price, currency)}
                   </div>
                   <Button
                       onClick={() => setShowConfirmModal(true)}
@@ -434,7 +435,7 @@ const BookService = () => {
               {serviceBufferMinutes > 0 && <DetailRow label="Buffer" value={`${serviceBufferMinutes} ${t("common.min")}`} />}
               <div className="flex justify-between items-center pt-2 border-t">
                 <span className="text-sm font-semibold">{t("book.total")}</span>
-                <span className="text-lg font-bold text-primary">${service.price}</span>
+                <span className="text-lg font-bold text-primary">{convertAndFormat(service.price, currency)}</span>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -458,6 +459,10 @@ function DetailRow({ label, value, link }: { label: string; value: string; link?
         )}
       </div>
   );
+}
+
+function PriceDetailRow({ label, priceMDL, currency }: { label: string; priceMDL: number; currency: Currency }) {
+  return <DetailRow label={label} value={convertAndFormat(priceMDL, currency)} />;
 }
 
 export default BookService;

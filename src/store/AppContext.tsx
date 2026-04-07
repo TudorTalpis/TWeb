@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef, type ReactNode } from "react";
+import React, { createContext, useContext, useReducer, useEffect, useRef, useState, type ReactNode } from "react";
 import type { AppState, AppAction, Role } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
 import { isHourOccupied } from "@/lib/booking";
 import { normalizeCategory } from "@/lib/categories";
+import type { Currency, ExchangeRates } from "@/lib/currency";
+import { DEFAULT_RATES } from "@/lib/currency";
 
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -234,6 +236,10 @@ interface AppContextValue {
   currentProvider: ReturnType<typeof getProvider>;
   hasRole: (roles: Role[]) => boolean;
   resetData: () => void;
+  // Currency
+  currency: Currency;
+  setCurrency: (c: Currency) => void;
+  exchangeRates: ExchangeRates;
 }
 
 function getCurrentUser(state: AppState) {
@@ -253,9 +259,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   stateRef.current = state;
 
+  // Currency state with persistence
+  const [currency, setCurrency] = useState<Currency>(() => {
+    try {
+      const saved = localStorage.getItem("app_currency");
+      if (saved && ["MDL", "USD", "EUR"].includes(saved)) return saved as Currency;
+    } catch { /* ignore */ }
+    return "MDL";
+  });
+
+  const exchangeRates = DEFAULT_RATES;
+
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  useEffect(() => {
+    localStorage.setItem("app_currency", currency);
+  }, [currency]);
 
   // Listen for storage changes from other tabs (e.g. admin approving an application)
   useEffect(() => {
@@ -310,7 +331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-      <AppContext.Provider value={{ state, dispatch, currentUser, currentProvider, hasRole, resetData }}>
+      <AppContext.Provider value={{ state, dispatch, currentUser, currentProvider, hasRole, resetData, currency, setCurrency, exchangeRates }}>
         {children}
       </AppContext.Provider>
   );

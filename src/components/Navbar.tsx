@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,7 +123,7 @@ export function Navbar() {
                   {currentLangCode}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[140px] bg-card border-border/60">
+              <DropdownMenuContent align="start" className="min-w-[140px] bg-card border-border/60">
                 {LANGUAGE_OPTIONS.map((opt) => (
                     <DropdownMenuItem
                         key={opt.code}
@@ -134,6 +135,10 @@ export function Navbar() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            {/* Currency selector */}
+            <div className="hidden sm:flex">
+              <CurrencySelector />
+            </div>
 
             {currentUser && (
                 <>
