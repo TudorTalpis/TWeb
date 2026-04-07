@@ -1,4 +1,4 @@
-import type { AppState } from "@/types";
+import type { AppState, AppUser } from "@/types";
 
 const KEYS = {
   session: "app_session",
@@ -14,9 +14,19 @@ const KEYS = {
   reviews: "app_reviews",
 } as const;
 
+type PersistedKey = keyof typeof KEYS;
+
+/** Strip sensitive fields before persistence */
+function sanitizeUser(user: AppUser): Omit<AppUser, "password"> & { password?: never } {
+  const { password: _, ...safeUser } = user;
+  return safeUser;
+}
+
 export function saveState(state: AppState) {
-  for (const [key, storageKey] of Object.entries(KEYS)) {
-    localStorage.setItem(storageKey, JSON.stringify((state as any)[key]));
+  for (const [key, storageKey] of Object.entries(KEYS) as Array<[PersistedKey, (typeof KEYS)[PersistedKey]]>) {
+    // Sanitize users before saving to remove passwords
+    const data = key === "users" ? (state[key] as AppUser[]).map(sanitizeUser) : state[key];
+    localStorage.setItem(storageKey, JSON.stringify(data));
   }
 }
 
@@ -24,12 +34,14 @@ export function loadState(): Partial<AppState> | null {
   try {
     const session = localStorage.getItem(KEYS.session);
     if (!session) return null;
-    const result: any = {};
-    for (const [key, storageKey] of Object.entries(KEYS)) {
+    const result: Partial<AppState> = {};
+    for (const [key, storageKey] of Object.entries(KEYS) as Array<[PersistedKey, (typeof KEYS)[PersistedKey]]>) {
       const raw = localStorage.getItem(storageKey);
-      if (raw) result[key] = JSON.parse(raw);
+      if (raw) {
+        result[key] = JSON.parse(raw) as AppState[PersistedKey];
+      }
     }
-    return result as Partial<AppState>;
+    return result;
   } catch {
     return null;
   }
@@ -42,5 +54,5 @@ export function clearState() {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+  return crypto.randomUUID();
 }

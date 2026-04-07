@@ -2,17 +2,39 @@ import { useAppStore } from "@/store/AppContext";
 import { useNavigate } from "react-router-dom";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { AppNotification, NotificationType, Role } from "@/types";
+
+function getNotificationRoute(notification: AppNotification, role: Role): string | undefined {
+  if (notification.linkTo) return notification.linkTo;
+
+  const fallbackByType: Record<NotificationType, string> = {
+    application_submitted: "/admin/applications",
+    new_booking: "/provider/bookings",
+    review_request: "/dashboard",
+    booking_success: "/dashboard",
+    application_approved: role === "PROVIDER" ? "/provider/dashboard" : "/become-provider",
+    application_rejected: "/become-provider",
+    provider_blocked: "/provider/dashboard",
+    provider_unblocked: "/provider/dashboard",
+  };
+
+  return fallbackByType[notification.type];
+}
 
 const Notifications = () => {
   const { state, dispatch } = useAppStore();
   const navigate = useNavigate();
   const userId = state.session.userId;
+  // Use the user's actual role from the users array, not the stale session role
+  const currentUser = userId ? state.users.find((u) => u.id === userId) : null;
+  const role = currentUser?.role ?? state.session.role;
   const notifications = state.notifications.filter((n) => n.userId === userId);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleClick = (n: (typeof notifications)[0]) => {
     if (!n.read) dispatch({ type: "MARK_NOTIFICATION_READ", payload: n.id });
-    if (n.linkTo) navigate(n.linkTo);
+    const route = getNotificationRoute(n, role);
+    if (route) navigate(route);
   };
 
   return (
@@ -20,7 +42,12 @@ const Notifications = () => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold">Notifications</h1>
         {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={() => dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" })} className="text-xs gap-1.5 rounded-full">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ" })}
+            className="text-xs gap-1.5 rounded-full"
+          >
             <CheckCheck className="h-3.5 w-3.5" /> Mark all read
           </Button>
         )}

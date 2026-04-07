@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test *)",
+      "Bash(npx *)",
+      "Bash(timeout *)",
+      "Bash(type *)",
+      "Bash(powershell *)",
+      "Bash(git add *)"
+    ]
+  },
+  "$version": 3
+}

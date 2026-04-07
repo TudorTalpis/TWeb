@@ -26,7 +26,9 @@ const ReviewBooking = () => {
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <p className="text-muted-foreground text-sm">Booking not found.</p>
         <Link to="/dashboard">
-          <Button variant="outline" className="mt-4 rounded-full">Go to Dashboard</Button>
+          <Button variant="outline" className="mt-4 rounded-full">
+            Go to Dashboard
+          </Button>
         </Link>
       </div>
     );
@@ -37,7 +39,9 @@ const ReviewBooking = () => {
       <div className="mx-auto max-w-md px-4 py-20 text-center">
         <p className="text-muted-foreground text-sm">This booking hasn't been completed yet.</p>
         <Link to="/dashboard">
-          <Button variant="outline" className="mt-4 rounded-full">Go to Dashboard</Button>
+          <Button variant="outline" className="mt-4 rounded-full">
+            Go to Dashboard
+          </Button>
         </Link>
       </div>
     );
@@ -52,9 +56,13 @@ const ReviewBooking = () => {
         <h1 className="text-2xl font-bold mb-2">Thank you for your review!</h1>
         <p className="text-muted-foreground text-sm mb-6">Your feedback helps other users find great services.</p>
         <div className="flex gap-3">
-          <Button onClick={() => navigate("/dashboard")} className="rounded-full h-10 px-6">My Bookings</Button>
+          <Button onClick={() => navigate("/dashboard")} className="rounded-full h-10 px-6">
+            My Bookings
+          </Button>
           <Link to={`/providers/${provider.id}`}>
-            <Button variant="outline" className="rounded-full h-10 px-6">View Provider</Button>
+            <Button variant="outline" className="rounded-full h-10 px-6">
+              View Provider
+            </Button>
           </Link>
         </div>
       </div>
@@ -81,7 +89,10 @@ const ReviewBooking = () => {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8 animate-fade-in">
-      <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+      >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
@@ -117,7 +128,7 @@ const ReviewBooking = () => {
         <Button
           onClick={handleSubmit}
           disabled={!comment.trim()}
-          className="w-full rounded-xl gradient-primary text-primary-foreground h-11 text-sm font-medium"
+          className="w-full rounded-xl bg-primary text-primary-foreground h-11 text-sm font-medium"
         >
           Submit Review
         </Button>

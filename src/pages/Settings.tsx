@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n, LANGUAGE_OPTIONS, type Language } from "@/store/I18nContext";
+import { useI18n } from "@/store/useI18n";
+import { LANGUAGE_OPTIONS } from "@/store/language-options";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Globe, Save, Lock, Briefcase, Phone } from "lucide-react";
+import { Globe, Save, Lock, Briefcase } from "lucide-react";
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const SettingsPage = () => {
   const [name, setName] = useState(currentUser?.name ?? "");
   const [email, setEmail] = useState(currentUser?.email ?? "");
   const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(currentUser?.phone ?? "");
 
   if (!currentUser) {
     return (
@@ -27,11 +28,14 @@ const SettingsPage = () => {
   }
 
   const handleSave = () => {
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim()) {
+      toast({ title: "Please complete name and email." });
+      return;
+    }
 
     // Update user in state
     const updatedUsers = state.users.map((u) =>
-      u.id === currentUser.id ? { ...u, name: name.trim(), email: email.trim() } : u
+      u.id === currentUser.id ? { ...u, name: name.trim(), email: email.trim() } : u,
     );
     dispatch({ type: "SET_STATE", payload: { ...state, users: updatedUsers } });
 
@@ -70,20 +74,11 @@ const SettingsPage = () => {
         <div className="space-y-4">
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">{t("settings.name")}</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="max-w-md"
-            />
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="max-w-md" />
           </div>
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">{t("settings.email")}</Label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="max-w-md"
-            />
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="max-w-md" />
           </div>
           <div>
             <Label className="text-xs text-muted-foreground mb-1.5 block">{t("settings.phone")}</Label>
@@ -122,14 +117,12 @@ const SettingsPage = () => {
       </div>
 
       {/* Become Provider section */}
-      <div className="rounded-2xl border bg-gradient-to-br from-primary/5 to-primary/10 p-6">
+      <div className="rounded-2xl border bg-card p-6">
         <h2 className="font-semibold text-sm flex items-center gap-2 mb-4">
           <Briefcase className="h-4 w-4 text-primary" /> {t("settings.becomeProvider")}
         </h2>
-        <p className="text-xs text-muted-foreground mb-4">
-          {t("home.becomeProvider")}
-        </p>
-        <Button 
+        <p className="text-xs text-muted-foreground mb-4">{t("home.becomeProvider")}</p>
+        <Button
           onClick={() => navigate("/become-provider")}
           className="gap-1.5 rounded-xl bg-primary hover:bg-primary/90"
         >
