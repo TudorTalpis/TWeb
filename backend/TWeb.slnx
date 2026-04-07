@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TWeb.API/TWeb.API.csproj" />
+  <Project Path="TWeb.BusinessLayer/TWeb.BusinessLayer.csproj" />
+  <Project Path="TWeb.DataAccessLayer/TWeb.DataAccessLayer.csproj" />
+  <Project Path="TWeb.Domain/TWeb.Domain.csproj" />
+</Solution>

@@ -1,0 +1,33 @@
+﻿# Docker
+[Dd]ockerfile*
+docker-compose*
+.dockerignore
+.env
+.env.example
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Test results
+**/TestResults/
+
+# Logs
+**/*.log
