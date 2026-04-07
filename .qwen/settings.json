@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(npm test *)",
-      "Bash(npx *)"
-    ]
+    "allow": ["Bash(npm test *)", "Bash(npx *)", "Bash(timeout *)"]
   },
   "$version": 3
 }

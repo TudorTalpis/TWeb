@@ -3,7 +3,7 @@ import type { AppState } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
 import { appReducer } from "./appReducer";
-import { AppContext } from "./AppContext";
+import { AppContext, type AppContextValue } from "./appContextTypes";
 import type { Currency } from "@/lib/currency";
 import { DEFAULT_RATES } from "@/lib/currency";
 
