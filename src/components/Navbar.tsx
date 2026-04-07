@@ -1,9 +1,9 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Menu, X, LogOut, ChevronDown, LayoutDashboard, Home, Search, Grid3X3, Settings, RotateCcw, Zap, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAppStore } from "@/store/AppContext";
 import { useI18n, LANGUAGE_OPTIONS } from "@/store/I18nContext";
-import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
@@ -21,9 +22,7 @@ export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
   const currentProvider = state.session.userId
     ? state.providerProfiles.find((provider) => provider.userId === state.session.userId)
@@ -36,16 +35,6 @@ export function Navbar() {
 
   const isActive = (path: string) => location.pathname === path;
   const isActivePrefix = (path: string) => location.pathname.startsWith(path);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,52 +145,61 @@ export function Navbar() {
                   </Link>
 
                   {/* User dropdown */}
-                  <div className="relative hidden md:block" ref={userMenuRef}>
-                    <button
-                        onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        aria-expanded={userMenuOpen}
-                        aria-haspopup="menu"
-                        className="flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/40 py-1.5 pl-1.5 pr-3 text-sm transition-all hover:bg-secondary hover:border-border hover:shadow-card"
-                    >
-                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
-                        {currentUser.name[0]}
-                      </div>
-                      <span className="text-sm font-medium text-foreground max-w-[90px] truncate">{currentUser.name.split(" ")[0]}</span>
-                      <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {userMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-border/60 bg-card p-1.5 shadow-card z-50">
-                          <div className="px-3 py-2.5 border-b border-border/50 mb-1.5">
-                            <p className="text-sm font-semibold text-foreground">{currentUser.name}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{currentUser.email}</p>
-                            <Badge variant="outline" className="mt-1.5 text-[10px] capitalize border-primary/30 text-primary bg-primary/8">{currentUser.role}</Badge>
-                          </div>
-                          {hasRole(["USER", "PROVIDER"]) && (
-                              <UserDropdownItem to="/dashboard" icon={<LayoutDashboard className="h-4 w-4" />} label={t("nav.myBookings")} onClick={() => setUserMenuOpen(false)} />
-                          )}
-                          {hasRole(["PROVIDER"]) && !isProviderBlocked && (
-                              <UserDropdownItem to="/provider/profile" icon={<Settings className="h-4 w-4" />} label={t("nav.providerSettings")} onClick={() => setUserMenuOpen(false)} />
-                          )}
-                          <UserDropdownItem to="/notifications" icon={<Bell className="h-4 w-4" />} label={t("nav.notifications")} onClick={() => setUserMenuOpen(false)} badge={unreadCount > 0 ? unreadCount : undefined} />
-                          <UserDropdownItem to="/settings" icon={<Settings className="h-4 w-4" />} label={t("nav.settings")} onClick={() => setUserMenuOpen(false)} />
-                          <button
-                              onClick={() => { resetData(); setUserMenuOpen(false); }}
-                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                          >
-                            <RotateCcw className="h-4 w-4" /> {t("nav.resetDemo")}
-                          </button>
-                          <div className="border-t border-border/50 mt-1 pt-1">
-                            <button
-                                onClick={() => { dispatch({ type: "LOGOUT" }); setUserMenuOpen(false); navigate("/auth/login", { replace: true }); }}
-                                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
-                            >
-                              <LogOut className="h-4 w-4" /> {t("nav.signOut")}
-                            </button>
-                          </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/40 py-1.5 pl-1.5 pr-3 text-sm transition-all hover:bg-secondary hover:border-border hover:shadow-card">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
+                          {currentUser.name[0]}
                         </div>
-                    )}
-                  </div>
+                        <span className="text-sm font-medium text-foreground max-w-[90px] truncate">{currentUser.name.split(" ")[0]}</span>
+                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 bg-card border-border/60">
+                      <div className="px-3 py-2.5">
+                        <p className="text-sm font-semibold text-foreground">{currentUser.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{currentUser.email}</p>
+                        <Badge variant="outline" className="mt-1.5 text-[10px] capitalize border-primary/30 text-primary bg-primary/8">{currentUser.role}</Badge>
+                      </div>
+                      <DropdownMenuSeparator />
+                      {hasRole(["USER", "PROVIDER"]) && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/dashboard" className="cursor-pointer flex items-center gap-2.5">
+                            <LayoutDashboard className="h-4 w-4 text-muted-foreground" /> {t("nav.myBookings")}
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      {hasRole(["PROVIDER"]) && !isProviderBlocked && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/provider/profile" className="cursor-pointer flex items-center gap-2.5">
+                            <Settings className="h-4 w-4 text-muted-foreground" /> {t("nav.providerSettings")}
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem asChild>
+                        <Link to="/notifications" className="cursor-pointer flex items-center justify-between gap-2.5">
+                          <span className="flex items-center gap-2.5"><Bell className="h-4 w-4 text-muted-foreground" /> {t("nav.notifications")}</span>
+                          {unreadCount > 0 && (
+                            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings" className="cursor-pointer flex items-center gap-2.5">
+                          <Settings className="h-4 w-4 text-muted-foreground" /> {t("nav.settings")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => resetData()}>
+                        <RotateCcw className="h-4 w-4 text-muted-foreground" /> {t("nav.resetDemo")}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => { dispatch({ type: "LOGOUT" }); navigate("/auth/login", { replace: true }); }} className="text-destructive">
+                        <LogOut className="h-4 w-4" /> {t("nav.signOut")}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
             )}
 
@@ -321,23 +319,6 @@ function MobileNavItem({ to, icon, label, onClick }: { to: string; icon: React.R
       >
         <span className="text-muted-foreground">{icon}</span>
         {label}
-      </Link>
-  );
-}
-
-function UserDropdownItem({ to, icon, label, onClick, badge }: { to: string; icon: React.ReactNode; label: string; onClick: () => void; badge?: number }) {
-  return (
-      <Link
-          to={to}
-          onClick={onClick}
-          className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary/80"
-      >
-        <span className="flex items-center gap-2.5 text-muted-foreground hover:text-foreground">{icon} <span className="text-foreground">{label}</span></span>
-        {badge !== undefined && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
-          {badge}
-        </span>
-        )}
       </Link>
   );
 }

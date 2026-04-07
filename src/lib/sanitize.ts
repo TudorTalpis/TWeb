@@ -1,8 +1,10 @@
-﻿/** Sanitize HTML to prevent XSS attacks */
+﻿/** Sanitize HTML to prevent XSS attacks (no DOM manipulation) */
 export function sanitizeHtml(input: string): string {
-  const div = document.createElement("div");
-  div.textContent = input;
-  return div.innerHTML;
+  return input
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 /** Sanitize user input for safe display */
