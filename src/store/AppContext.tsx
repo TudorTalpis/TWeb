@@ -1,166 +1,19 @@
-import React, { createContext, useContext, useReducer, useEffect, type ReactNode } from "react";
+import React, { createContext, useReducer, useEffect, useState, useContext, type ReactNode } from "react";
 import type { AppState, AppAction, Role } from "@/types";
 import { saveState, loadState } from "@/lib/storage";
 import { createSeedData } from "@/data/seed";
-import { isHourOccupied } from "@/lib/booking";
-import { normalizeCategory } from "@/lib/categories";
+import { appReducer } from "./appReducer";
+import type { Currency, ExchangeRates } from "@/lib/currency";
+import { DEFAULT_RATES } from "@/lib/currency";
 
-function appReducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
-    case "SET_STATE":
-      return { ...action.payload };
-    case "ADD_CATEGORY": {
-      const normalized = normalizeCategory(action.payload.name);
-      const exists = state.categories.some(
-        (category) =>
-          category.id === action.payload.id || normalizeCategory(category.name) === normalized,
-      );
-      if (exists) return state;
-      return { ...state, categories: [...state.categories, action.payload] };
-    }
-    case "UPDATE_CATEGORY":
-      return {
-        ...state,
-        categories: state.categories.map((c) =>
-            c.id === action.payload.id ? { ...c, ...action.payload } : c
-        ),
-      };
-    case "DELETE_CATEGORY":
-      return { ...state, categories: state.categories.filter((c) => c.id !== action.payload) };
+function getCurrentUser(state: AppState) {
+  if (!state.session.userId) return null;
+  return state.users.find((u) => u.id === state.session.userId) ?? null;
+}
 
-    case "UPDATE_USER":
-      return {
-        ...state,
-        users: state.users.map((u) =>
-            u.id === action.payload.id ? { ...u, ...action.payload } : u
-        ),
-      };
-
-    case "LOGIN": {
-      const user = state.users.find((u) => u.id === action.payload.userId);
-      if (!user) return state;
-      return { ...state, session: { userId: user.id, role: user.role } };
-    }
-    case "LOGOUT":
-      return { ...state, session: { userId: null, role: "GUEST" } };
-
-    case "UPDATE_PROVIDER_PROFILE":
-      return {
-        ...state,
-        providerProfiles: state.providerProfiles.map((p) =>
-            p.id === action.payload.id ? { ...p, ...action.payload } : p
-        ),
-      };
-
-    case "ADD_SERVICE":
-      return { ...state, services: [...state.services, action.payload] };
-    case "UPDATE_SERVICE":
-      return {
-        ...state,
-        services: state.services.map((s) =>
-            s.id === action.payload.id ? { ...s, ...action.payload } : s
-        ),
-      };
-    case "DELETE_SERVICE":
-      return { ...state, services: state.services.filter((s) => s.id !== action.payload) };
-
-    case "SET_AVAILABILITY":
-      return { ...state, availability: action.payload };
-    case "ADD_TIMEOFF":
-      return { ...state, timeoff: [...state.timeoff, action.payload] };
-    case "DELETE_TIMEOFF":
-      return { ...state, timeoff: state.timeoff.filter((t) => t.id !== action.payload) };
-
-    case "ADD_BOOKING":
-      if (state.providerProfiles.some((provider) => provider.id === action.payload.providerId && provider.blocked)) {
-        return state;
-      }
-      if (
-        isHourOccupied(
-          action.payload.providerId,
-          action.payload.date,
-          action.payload.startTime,
-          action.payload.endTime,
-          state.bookings
-        )
-      ) {
-        return state;
-      }
-      return { ...state, bookings: [...state.bookings, action.payload] };
-    case "UPDATE_BOOKING":
-      return {
-        ...state,
-        bookings: state.bookings.map((b) =>
-            b.id === action.payload.id ? { ...b, ...action.payload } : b
-        ),
-      };
-    case "DELETE_BOOKING":
-      return { ...state, bookings: state.bookings.filter((b) => b.id !== action.payload) };
-
-    case "ADD_APPLICATION":
-      return { ...state, applications: [...state.applications, action.payload] };
-    case "UPDATE_APPLICATION":
-      return {
-        ...state,
-        applications: state.applications.map((a) =>
-            a.id === action.payload.id
-              ? {
-                  ...a,
-                  status: action.payload.status,
-                  rejectReason: action.payload.status === "REJECTED" ? action.payload.rejectReason : undefined,
-                }
-              : a
-        ),
-      };
-
-    case "ADD_NOTIFICATION":
-      return { ...state, notifications: [action.payload, ...state.notifications] };
-    case "MARK_NOTIFICATION_READ":
-      return {
-        ...state,
-        notifications: state.notifications.map((n) =>
-            n.id === action.payload ? { ...n, read: true } : n
-        ),
-      };
-    case "MARK_ALL_NOTIFICATIONS_READ":
-      return {
-        ...state,
-        notifications: state.notifications.map((n) => ({ ...n, read: true })),
-      };
-
-    case "TOGGLE_FEATURED":
-      return {
-        ...state,
-        providerProfiles: state.providerProfiles.map((p) =>
-            p.id === action.payload ? { ...p, featured: !p.featured } : p
-        ),
-      };
-    case "TOGGLE_SPONSORED":
-      return {
-        ...state,
-        providerProfiles: state.providerProfiles.map((p) =>
-            p.id === action.payload ? { ...p, sponsored: !p.sponsored } : p
-        ),
-      };
-    case "TOGGLE_BLOCKED":
-      return {
-        ...state,
-        providerProfiles: state.providerProfiles.map((p) =>
-            p.id === action.payload ? { ...p, blocked: !p.blocked } : p
-        ),
-      };
-
-
-    case "ADD_USER":
-      return { ...state, users: [...state.users, action.payload] };
-    case "ADD_PROVIDER_PROFILE":
-      return { ...state, providerProfiles: [...state.providerProfiles, action.payload] };
-    case "ADD_REVIEW":
-      return { ...state, reviews: [...state.reviews, action.payload] };
-
-    default:
-      return state;
-  }
+function getProvider(state: AppState) {
+  if (!state.session.userId) return null;
+  return state.providerProfiles.find((p) => p.userId === state.session.userId) ?? null;
 }
 
 function getInitialState(): AppState {
@@ -170,11 +23,18 @@ function getInitialState(): AppState {
     type RawProviderProfile = Partial<AppState["providerProfiles"][number]> & { categoryId?: string };
     type RawApplication = Partial<AppState["applications"][number]> & { categoryId?: string };
     type RawService = Partial<AppState["services"][number]>;
+    type RawUser = Partial<AppState["users"][number]>;
 
-    // Keep custom users, but always refresh seed users by id so seed password/name updates apply.
     const seedById = new Map(seed.users.map((u) => [u.id, u]));
-    const savedUsers = saved.users;
-    const users = savedUsers.map((u) => ({ ...(seedById.get(u.id) ?? u), phone: (seedById.get(u.id)?.phone ?? u.phone ?? "") }));
+    const savedUsers = saved.users as RawUser[];
+    const users = savedUsers.map((u) => {
+      const seedUser = seedById.get(u.id!);
+      return {
+        ...(seedUser ?? u),
+        phone: seedUser?.phone ?? u.phone ?? "",
+        password: seedUser?.password ?? "",
+      };
+    });
     for (const seedUser of seed.users) {
       if (!savedUsers.some((u) => u.id === seedUser.id)) users.push(seedUser);
     }
@@ -217,29 +77,25 @@ function getInitialState(): AppState {
   return seed;
 }
 
-interface AppContextValue {
+export interface AppContextValue {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
   currentUser: ReturnType<typeof getCurrentUser>;
   currentProvider: ReturnType<typeof getProvider>;
   hasRole: (roles: Role[]) => boolean;
   resetData: () => void;
+  currency: Currency;
+  setCurrency: (c: Currency) => void;
+  exchangeRates: ExchangeRates;
 }
 
-function getCurrentUser(state: AppState) {
-  if (!state.session.userId) return null;
-  return state.users.find((u) => u.id === state.session.userId) ?? null;
-}
-
-function getProvider(state: AppState) {
-  if (!state.session.userId) return null;
-  return state.providerProfiles.find((p) => p.userId === state.session.userId) ?? null;
-}
-
-const AppContext = createContext<AppContextValue | null>(null);
+export const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, undefined, getInitialState);
+
+  const [currency, setCurrency] = useState<Currency>("MDL");
+  const exchangeRates = DEFAULT_RATES;
 
   useEffect(() => {
     saveState(state);
@@ -247,7 +103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const currentUser = getCurrentUser(state);
   const currentProvider = getProvider(state);
-  const hasRole = (roles: Role[]) => roles.includes(state.session.role);
+  const hasRole = (roles: Role[]) => roles.includes(currentUser?.role ?? state.session.role);
 
   const resetData = () => {
     const fresh = createSeedData();
@@ -255,9 +111,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-      <AppContext.Provider value={{ state, dispatch, currentUser, currentProvider, hasRole, resetData }}>
-        {children}
-      </AppContext.Provider>
+    <AppContext.Provider
+      value={{
+        state,
+        dispatch,
+        currentUser,
+        currentProvider,
+        hasRole,
+        resetData,
+        currency,
+        setCurrency,
+        exchangeRates,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
   );
 }
 
@@ -265,4 +133,10 @@ export function useAppStore() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error("useAppStore must be used inside AppProvider");
   return ctx;
+}
+
+export function useCurrentUser() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useCurrentUser must be used inside AppProvider");
+  return ctx.currentUser;
 }

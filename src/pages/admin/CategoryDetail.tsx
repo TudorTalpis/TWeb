@@ -7,30 +7,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Package } from "lucide-react";
 import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const AVAILABLE_ICONS = [
-  "Wrench", "Scissors", "Hammer", "Brush", "Sparkles", "Home", 
-  "Car", "Laptop", "Coffee", "ShoppingCart", "Heart", "Star",
-  "Package", "Users", "Book", "Music", "Camera", "Zap"
+  "Wrench",
+  "Scissors",
+  "Hammer",
+  "Brush",
+  "Sparkles",
+  "Home",
+  "Car",
+  "Laptop",
+  "Coffee",
+  "ShoppingCart",
+  "Heart",
+  "Star",
+  "Package",
+  "Users",
+  "Book",
+  "Music",
+  "Camera",
+  "Zap",
 ];
 
-const AVAILABLE_COLORS = [
-  "blue", "green", "purple", "orange", "red", "pink", "yellow", "cyan"
-];
+const AVAILABLE_COLORS = ["blue", "green", "purple", "orange", "red", "pink", "yellow", "cyan"];
 
 const AdminCategoryDetail = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const { state, dispatch } = useAppStore();
-  
+
   const category = state.categories.find((c) => c.id === categoryId);
-  
+
   const [formData, setFormData] = useState({
     name: category?.name || "",
     description: category?.description || "",
     icon: category?.icon || "Package",
-    color: category?.color || "blue"
+    color: category?.color || "blue",
   });
 
   if (!category) {
@@ -63,8 +76,8 @@ const AdminCategoryDetail = () => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         icon: formData.icon,
-        color: formData.color
-      }
+        color: formData.color,
+      },
     });
 
     navigate("/admin/categories");
@@ -72,7 +85,7 @@ const AdminCategoryDetail = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <Link to="/admin/categories">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Categories
@@ -102,8 +115,11 @@ const AdminCategoryDetail = () => {
 
             {/* Form Fields */}
             <div>
-              <label className="text-sm font-medium">Name *</label>
+              <label htmlFor="edit-category-name" className="text-sm font-medium">
+                Name *
+              </label>
               <Input
+                id="edit-category-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Category name"
@@ -112,8 +128,11 @@ const AdminCategoryDetail = () => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Description</label>
+              <label htmlFor="edit-category-description" className="text-sm font-medium">
+                Description
+              </label>
               <Textarea
+                id="edit-category-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Category description"
@@ -124,27 +143,37 @@ const AdminCategoryDetail = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-sm font-medium">Icon</label>
+                <label htmlFor="edit-category-icon" className="text-sm font-medium">
+                  Icon
+                </label>
                 <select
+                  id="edit-category-icon"
                   value={formData.icon}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 >
-                  {AVAILABLE_ICONS.map(icon => (
-                    <option key={icon} value={icon}>{icon}</option>
+                  {AVAILABLE_ICONS.map((icon) => (
+                    <option key={icon} value={icon}>
+                      {icon}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-sm font-medium">Color</label>
+                <label htmlFor="edit-category-color" className="text-sm font-medium">
+                  Color
+                </label>
                 <select
+                  id="edit-category-color"
                   value={formData.color}
                   onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 >
-                  {AVAILABLE_COLORS.map(color => (
-                    <option key={color} value={color}>{color}</option>
+                  {AVAILABLE_COLORS.map((color) => (
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
                   ))}
                 </select>
               </div>

@@ -1,8 +1,6 @@
-﻿import React, { createContext, useContext, useEffect, type ReactNode } from "react";
-import type { AxiosInstance } from "axios";
+﻿import React, { useEffect, type ReactNode } from "react";
 import { apiClient, registerApiInterceptors } from "@/lib/apiClient";
-
-const AxiosContext = createContext<AxiosInstance>(apiClient);
+import { AxiosContext } from "./axios-context";
 
 export function AxiosProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -10,8 +8,4 @@ export function AxiosProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return <AxiosContext.Provider value={apiClient}>{children}</AxiosContext.Provider>;
-}
-
-export function useAxios() {
-  return useContext(AxiosContext);
 }

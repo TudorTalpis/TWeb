@@ -67,7 +67,12 @@ const ProviderServices = () => {
       defaultBufferMinutes: String(getProviderDefaultBufferMinutes(currentProvider)),
     });
     setSettingsError("");
-  }, [currentProvider, currentProvider?.id, currentProvider?.autoConfirm, currentProvider?.defaultServiceBufferMinutes]);
+  }, [
+    currentProvider,
+    currentProvider?.id,
+    currentProvider?.autoConfirm,
+    currentProvider?.defaultServiceBufferMinutes,
+  ]);
 
   const providerId = currentProvider?.id ?? "";
   const providerDefaultBuffer = getProviderDefaultBufferMinutes(currentProvider);
@@ -157,7 +162,8 @@ const ProviderServices = () => {
       description: service.description,
       price: String(service.price),
       duration: String(service.duration),
-      customBuffer: service.bufferMinutes === null || service.bufferMinutes === undefined ? "" : String(service.bufferMinutes),
+      customBuffer:
+        service.bufferMinutes === null || service.bufferMinutes === undefined ? "" : String(service.bufferMinutes),
     });
   };
 
@@ -185,7 +191,7 @@ const ProviderServices = () => {
 
   return (
     <ProviderPanelLayout>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
+      <div className="animate-fade-in grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)]">
         <section className="overflow-hidden rounded-3xl border border-border/60 bg-card/95 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-secondary/20 px-5 py-4">
             <div>
@@ -208,7 +214,11 @@ const ProviderServices = () => {
               <div className="animate-fade-in rounded-2xl border border-border/60 bg-background/60 p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-sm font-semibold">{editing ? "Edit Service" : "New Service"}</h3>
-                  <button aria-label="Close service form" onClick={resetForm} className="text-muted-foreground transition-colors hover:text-foreground">
+                  <button
+                    aria-label="Close service form"
+                    onClick={resetForm}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -228,8 +238,11 @@ const ProviderServices = () => {
 
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1">
-                      <label className="block text-xs text-muted-foreground">Price ($)</label>
+                      <label htmlFor="service-price" className="block text-xs text-muted-foreground">
+                        Price ($)
+                      </label>
                       <Input
+                        id="service-price"
                         type="number"
                         min={0}
                         value={form.price}
@@ -238,8 +251,11 @@ const ProviderServices = () => {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-xs text-muted-foreground">Duration (min)</label>
+                      <label htmlFor="service-duration" className="block text-xs text-muted-foreground">
+                        Duration (min)
+                      </label>
                       <Input
+                        id="service-duration"
                         type="number"
                         min={5}
                         step={5}
@@ -249,8 +265,11 @@ const ProviderServices = () => {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="block text-xs text-muted-foreground">Custom Buffer (min)</label>
+                      <label htmlFor="service-buffer" className="block text-xs text-muted-foreground">
+                        Custom Buffer (min)
+                      </label>
                       <Input
+                        id="service-buffer"
                         type="number"
                         min={0}
                         step={5}
@@ -289,12 +308,19 @@ const ProviderServices = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {service.duration} min + {effectiveBuffer} min buffer ({usesDefaultBuffer ? "default" : "custom"})
+                        {service.duration} min + {effectiveBuffer} min buffer (
+                        {usesDefaultBuffer ? "default" : "custom"})
                       </span>
                     </div>
                   </div>
                   <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                    <Button aria-label={`Edit ${service.title}`} variant="ghost" size="sm" onClick={() => startEdit(service)} className="h-8 w-8 rounded-lg p-0">
+                    <Button
+                      aria-label={`Edit ${service.title}`}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEdit(service)}
+                      className="h-8 w-8 rounded-lg p-0"
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
@@ -339,8 +365,11 @@ const ProviderServices = () => {
             </div>
 
             <div className="space-y-2 rounded-2xl border border-border/60 bg-background/60 p-4">
-              <label className="block text-sm font-medium">Default Buffer (min)</label>
+              <label htmlFor="default-buffer" className="block text-sm font-medium">
+                Default Buffer (min)
+              </label>
               <Input
+                id="default-buffer"
                 type="number"
                 min={0}
                 step={5}
@@ -348,9 +377,7 @@ const ProviderServices = () => {
                 onChange={(event) => setSettingsForm((prev) => ({ ...prev, defaultBufferMinutes: event.target.value }))}
                 className="rounded-xl"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Applied when a service has no custom buffer value.
-              </p>
+              <p className="text-[11px] text-muted-foreground">Applied when a service has no custom buffer value.</p>
             </div>
 
             {settingsError && <p className="text-xs text-destructive">{settingsError}</p>}

@@ -1,208 +1,313 @@
 ﻿import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/AppContext";
-import { useI18n } from "@/store/I18nContext";
+import { useI18n } from "@/store/useI18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
-import { generateId } from "@/lib/storage";
-import type { AppUser } from "@/types";
+import { useToast } from "@/hooks/use-toast";
+import { useSignUp } from "@/api/hooks";
+import { saveSession } from "@/lib/auth";
 
 const SignUp = (): JSX.Element => {
-    const { state, dispatch } = useAppStore();
-    const { t } = useI18n();
-    const navigate = useNavigate();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirm, setConfirm] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [error, setError] = useState("");
-    const [touched, setTouched] = useState(false);
+  const { state, dispatch } = useAppStore();
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+  const [touched, setTouched] = useState(false);
 
-    const PASSWORD_RULES = [
-        { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 8 },
-        { id: "upper", label: t("auth.rule.upper"), test: (v: string) => /[A-Z]/.test(v) },
-        { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
-        { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 128 },
-    ];
+  const signUpMutation = useSignUp();
 
-    const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
-    const allRulesPassed = passedRules.every((r) => r.passed);
-    const passwordsMatch = password === confirm;
+  const PASSWORD_RULES = [
+    { id: "length", label: t("auth.rule.length"), test: (v: string) => v.length >= 8 },
+    { id: "upper", label: t("auth.rule.upper"), test: (v: string) => /[A-Z]/.test(v) },
+    { id: "number", label: t("auth.rule.number"), test: (v: string) => /\d/.test(v) },
+    { id: "maxlen", label: t("auth.rule.maxlen"), test: (v: string) => v.length <= 128 },
+  ];
 
-    const handleSignUp = (e: React.FormEvent) => {
-        e.preventDefault();
-        setTouched(true);
-        setError("");
-        const trimmedName = name.trim();
-        const trimmedEmail = email.trim().toLowerCase();
-        const trimmedPhone = phone.trim();
-        if (!trimmedName) { setError(t("auth.error.noFullName")); return; }
-        if (trimmedName.length < 2) { setError(t("auth.error.nameTooShort")); return; }
-        if (!trimmedEmail) { setError(t("auth.error.noEmail")); return; }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(trimmedEmail)) { setError(t("auth.error.invalidEmail")); return; }
-        if (!trimmedPhone) { setError("Please enter your phone number."); return; }
-        if (trimmedPhone.length < 6) { setError("Phone number is too short."); return; }
-        const nameTaken = state.users.some((u: AppUser) => u.name.toLowerCase() === trimmedName.toLowerCase());
-        if (nameTaken) { setError(t("auth.error.nameTaken")); return; }
-        const emailTaken = state.users.some((u: AppUser) => u.email.toLowerCase() === trimmedEmail);
-        if (emailTaken) { setError(t("auth.error.emailTaken")); return; }
-        if (!allRulesPassed) { setError(t("auth.error.rulesNotMet")); return; }
-        if (!passwordsMatch) { setError(t("auth.error.passNoMatch")); return; }
+  const passedRules = PASSWORD_RULES.map((r) => ({ ...r, passed: r.test(password) }));
+  const allRulesPassed = passedRules.every((r) => r.passed);
+  const passwordsMatch = password === confirm;
 
-        const newUser = {
-            id: generateId(),
-            name: trimmedName,
-            email: trimmedEmail,
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    setError("");
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPhone = phone.trim();
+    if (!trimmedName) {
+      setError(t("auth.error.noFullName"));
+      return;
+    }
+    if (trimmedName.length < 2) {
+      setError(t("auth.error.nameTooShort"));
+      return;
+    }
+    if (!trimmedEmail) {
+      setError(t("auth.error.noEmail"));
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setError(t("auth.error.invalidEmail"));
+      return;
+    }
+    if (!trimmedPhone) {
+      setError("Please enter your phone number.");
+      return;
+    }
+    if (trimmedPhone.length < 6) {
+      setError("Phone number is too short.");
+      return;
+    }
+    if (!allRulesPassed) {
+      setError(t("auth.error.rulesNotMet"));
+      return;
+    }
+    if (!passwordsMatch) {
+      setError(t("auth.error.passNoMatch"));
+      return;
+    }
+
+    try {
+      const response = await signUpMutation.mutateAsync({
+        name: trimmedName,
+        email: trimmedEmail,
+        phone: trimmedPhone,
+        password,
+        role: "USER",
+      });
+
+      // Save session
+      saveSession({
+        token: response.token,
+        userId: response.userId,
+        role: response.role,
+        name: response.name,
+        email: response.email,
+      });
+
+      // Add user to state if not already present
+      const existingUser = state.users.find((u) => u.id === response.userId);
+      if (!existingUser) {
+        dispatch({
+          type: "ADD_USER",
+          payload: {
+            id: response.userId,
+            name: response.name,
+            email: response.email,
             phone: trimmedPhone,
-            password,
-            role: "USER" as const,
-        };
-        dispatch({ type: "ADD_USER", payload: newUser });
-        dispatch({ type: "LOGIN", payload: { userId: newUser.id } });
-        toast.success(`Welcome, ${newUser.name}!`);
-        navigate("/");
-    };
+            password: "",
+            role: "USER",
+          },
+        });
+      }
 
-    return (
-        <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
-            <div className="relative w-full max-w-md animate-fade-in">
-                <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
-                    <div className="text-center mb-8">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
-                            <UserPlus className="h-7 w-7 text-white" />
-                        </div>
-                        <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signUp.title")}</h1>
-                        <p className="mt-2 text-muted-foreground text-sm">{t("auth.signUp.subtitle")}</p>
+      // Update app state
+      dispatch({ type: "LOGIN", payload: { userId: response.userId } });
+      toast({ title: `Welcome, ${response.name}!` });
+      navigate("/");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create account";
+      setError(message);
+    }
+  };
+
+  return (
+    <div className="relative min-h-[90vh] flex items-center justify-center px-4 py-16">
+      <div className="relative w-full max-w-md animate-fade-in">
+        <div className="rounded-2xl border border-border/70 bg-card p-8 shadow-card">
+          <div className="text-center mb-8">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
+              <UserPlus className="h-7 w-7 text-white" />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t("auth.signUp.title")}</h1>
+            <p className="mt-2 text-muted-foreground text-sm">{t("auth.signUp.subtitle")}</p>
+          </div>
+
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-sm font-medium text-foreground/80">
+                {t("auth.field.name")}
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder={t("auth.field.namePlaceholder")}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError("");
+                }}
+                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                autoComplete="name"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground/80">
+                {t("auth.field.email")}
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder={t("auth.field.emailPlaceholder")}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError("");
+                }}
+                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                autoComplete="email"
+                maxLength={255}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">
+                Phone Number
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+40 712 345 678"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setError("");
+                }}
+                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                autoComplete="tel"
+                maxLength={30}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground/80">
+                {t("auth.field.password")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("auth.field.newPasswordPlaceholder")}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError("");
+                    setTouched(true);
+                  }}
+                  className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
+                  autoComplete="new-password"
+                  maxLength={128}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {touched && password.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {passedRules.map((rule) => (
+                    <div key={rule.id} className="flex items-center gap-2 text-xs">
+                      {rule.passed ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                      ) : (
+                        <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
+                      )}
+                      <span className={rule.passed ? "text-accent" : "text-muted-foreground"}>{rule.label}</span>
                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                    <form onSubmit={handleSignUp} className="space-y-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="name" className="text-sm font-medium text-foreground/80">{t("auth.field.name")}</Label>
-                            <Input
-                                id="name"
-                                type="text"
-                                placeholder={t("auth.field.namePlaceholder")}
-                                value={name}
-                                onChange={(e) => { setName(e.target.value); setError(""); }}
-                                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                                autoComplete="name"
-                                maxLength={100}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="email" className="text-sm font-medium text-foreground/80">{t("auth.field.email")}</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder={t("auth.field.emailPlaceholder")}
-                                value={email}
-                                onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                                autoComplete="email"
-                                maxLength={255}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="phone" className="text-sm font-medium text-foreground/80">Phone Number</Label>
-                            <Input
-                                id="phone"
-                                type="tel"
-                                placeholder="+40 712 345 678"
-                                value={phone}
-                                onChange={(e) => { setPhone(e.target.value); setError(""); }}
-                                className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 transition-all"
-                                autoComplete="tel"
-                                maxLength={30}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="password" className="text-sm font-medium text-foreground/80">{t("auth.field.password")}</Label>
-                            <div className="relative">
-                                <Input
-                                    id="password"
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder={t("auth.field.newPasswordPlaceholder")}
-                                    value={password}
-                                    onChange={(e) => { setPassword(e.target.value); setError(""); setTouched(true); }}
-                                    className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
-                                    autoComplete="new-password"
-                                    maxLength={128}
-                                />
-                                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                            {touched && password.length > 0 && (
-                                <div className="space-y-1 pt-1">
-                                    {passedRules.map((rule) => (
-                                        <div key={rule.id} className="flex items-center gap-2 text-xs">
-                                            {rule.passed ? <CheckCircle2 className="h-3.5 w-3.5 text-accent" /> : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />}
-                                            <span className={rule.passed ? "text-accent" : "text-muted-foreground"}>{rule.label}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <Label htmlFor="confirm" className="text-sm font-medium text-foreground/80">{t("auth.field.confirm")}</Label>
-                            <div className="relative">
-                                <Input
-                                    id="confirm"
-                                    type={showConfirm ? "text" : "password"}
-                                    placeholder={t("auth.field.confirmPlaceholder")}
-                                    value={confirm}
-                                    onChange={(e) => { setConfirm(e.target.value); setError(""); }}
-                                    className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
-                                    autoComplete="new-password"
-                                    maxLength={128}
-                                />
-                                <button type="button" aria-label={showConfirm ? "Hide confirmation password" : "Show confirmation password"} onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                            {touched && confirm.length > 0 && (
-                                <div className="flex items-center gap-2 text-xs pt-1">
-                                    {passwordsMatch ? <CheckCircle2 className="h-3.5 w-3.5 text-accent" /> : <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />}
-                                    <span className={passwordsMatch ? "text-accent" : "text-muted-foreground"}>
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm" className="text-sm font-medium text-foreground/80">
+                {t("auth.field.confirm")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirm"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder={t("auth.field.confirmPlaceholder")}
+                  value={confirm}
+                  onChange={(e) => {
+                    setConfirm(e.target.value);
+                    setError("");
+                  }}
+                  className="h-11 rounded-xl bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-primary/20 pr-10 transition-all"
+                  autoComplete="new-password"
+                  maxLength={128}
+                />
+                <button
+                  type="button"
+                  aria-label={showConfirm ? "Hide confirmation password" : "Show confirmation password"}
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {touched && confirm.length > 0 && (
+                <div className="flex items-center gap-2 text-xs pt-1">
+                  {passwordsMatch ? (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                  ) : (
+                    <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/50" />
+                  )}
+                  <span className={passwordsMatch ? "text-accent" : "text-muted-foreground"}>
                     {passwordsMatch ? t("auth.rule.match") : t("auth.rule.noMatch")}
                   </span>
-                                </div>
-                            )}
-                        </div>
-
-                        {error && (
-                            <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/8 p-3 text-sm text-destructive">
-                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                {error}
-                            </div>
-                        )}
-
-                        <Button type="submit" className="h-11 w-full rounded-xl bg-primary font-semibold text-white">
-                            {t("auth.signUp.button")}
-                        </Button>
-                    </form>
                 </div>
-
-                <p className="mt-5 text-center text-sm text-muted-foreground">
-                    {t("auth.signUp.hasAccount")}{" "}
-                    <Link to="/auth/login" className="text-primary font-semibold hover:text-primary/80 link-underline transition-colors">
-                        {t("auth.signIn.title")}
-                    </Link>
-                </p>
+              )}
             </div>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/8 p-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="h-11 w-full rounded-xl bg-primary font-semibold text-white"
+              disabled={signUpMutation.isPending}
+            >
+              {signUpMutation.isPending ? "Creating account..." : t("auth.signUp.button")}
+            </Button>
+          </form>
         </div>
-    );
+
+        <p className="mt-5 text-center text-sm text-muted-foreground">
+          {t("auth.signUp.hasAccount")}{" "}
+          <Link
+            to="/auth/login"
+            className="text-primary font-semibold hover:text-primary/80 link-underline transition-colors"
+          >
+            {t("auth.signIn.title")}
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default SignUp;

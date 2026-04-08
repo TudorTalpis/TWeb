@@ -9,27 +9,27 @@ import { AdminPanelLayout } from "@/components/AdminPanelLayout";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
-const PANEL_CLASS = "rounded-3xl border border-border/60 bg-card p-5 shadow-card";
+const PANEL_CLASS = "rounded-2xl border border-border/60 bg-card p-6 shadow-card";
 
 const ROLE_COLORS: Record<Role, string> = {
   ADMIN: "bg-purple-500/15 text-purple-500 border-purple-500/30",
   PROVIDER: "bg-blue-500/15 text-blue-500 border-blue-500/30",
   USER: "bg-green-500/15 text-green-500 border-green-500/30",
-  GUEST: "bg-gray-500/15 text-gray-500 border-gray-500/30"
+  GUEST: "bg-gray-500/15 text-gray-500 border-gray-500/30",
 };
 
 const AdminUserDetail = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { state, dispatch } = useAppStore();
-  
+
   const user = state.users.find((u) => u.id === userId);
-  
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
-    role: user?.role || "USER"
+    role: user?.role || "USER",
   });
 
   if (!user) {
@@ -49,9 +49,9 @@ const AdminUserDetail = () => {
     );
   }
 
-  const providerProfile = state.providerProfiles.find(p => p.userId === user.id);
-  const userBookings = state.bookings.filter(b => b.userId === user.id);
-  const providerBookings = providerProfile ? state.bookings.filter(b => b.providerId === providerProfile.id) : [];
+  const providerProfile = state.providerProfiles.find((p) => p.userId === user.id);
+  const userBookings = state.bookings.filter((b) => b.userId === user.id);
+  const providerBookings = providerProfile ? state.bookings.filter((b) => b.providerId === providerProfile.id) : [];
 
   const handleSave = () => {
     if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
@@ -66,8 +66,8 @@ const AdminUserDetail = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
-        role: formData.role as Role
-      }
+        role: formData.role as Role,
+      },
     });
 
     navigate("/admin/users");
@@ -75,7 +75,7 @@ const AdminUserDetail = () => {
 
   return (
     <AdminPanelLayout>
-      <div className="space-y-6">
+      <div className="animate-fade-in space-y-6">
         <Link to="/admin/users">
           <Button variant="ghost" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Users
@@ -107,7 +107,9 @@ const AdminUserDetail = () => {
 
         {/* Edit Form */}
         <section className={PANEL_CLASS}>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">User Information</h3>
+          <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            User Information
+          </h3>
           <div className="space-y-4">
             {/* Preview */}
             <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4">
@@ -130,10 +132,11 @@ const AdminUserDetail = () => {
 
             {/* Form Fields */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="user-name" className="flex items-center gap-2 text-sm font-medium">
                 <User className="h-4 w-4" /> Name *
               </label>
               <Input
+                id="user-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Full name"
@@ -142,10 +145,11 @@ const AdminUserDetail = () => {
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="user-email" className="flex items-center gap-2 text-sm font-medium">
                 <Mail className="h-4 w-4" /> Email *
               </label>
               <Input
+                id="user-email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -155,10 +159,11 @@ const AdminUserDetail = () => {
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="user-phone" className="flex items-center gap-2 text-sm font-medium">
                 <Phone className="h-4 w-4" /> Phone *
               </label>
               <Input
+                id="user-phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -168,10 +173,11 @@ const AdminUserDetail = () => {
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="user-role" className="flex items-center gap-2 text-sm font-medium">
                 <Shield className="h-4 w-4" /> Role *
               </label>
               <select
+                id="user-role"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -199,10 +205,10 @@ const AdminUserDetail = () => {
         {/* Provider Profile Link */}
         {providerProfile && (
           <section className={PANEL_CLASS}>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Provider Profile</h3>
-            <p className="text-sm text-muted-foreground mb-3">
-              This user has an associated provider profile.
-            </p>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Provider Profile
+            </h3>
+            <p className="text-sm text-muted-foreground mb-3">This user has an associated provider profile.</p>
             <Link to={`/admin/providers/${providerProfile.id}`}>
               <Button variant="outline" className="rounded-xl">
                 View Provider Profile

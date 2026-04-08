@@ -14,110 +14,107 @@ interface PanelLayoutProps {
 export function PanelLayout({ children, title, subtitle, tabs }: PanelLayoutProps) {
   const location = useLocation();
   const isMobile = useIsMobile();
-  const [collapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const SidebarContent = () => (
-      <>
-        {!collapsed && (
-            <div className="px-4 py-4 border-b border-border/50">
-              <p className="font-display text-xs font-bold text-foreground">{title}</p>
-              {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
-            </div>
-        )}
-        <nav className="flex-1 p-2 space-y-0.5">
-          {tabs.map((tab) => {
-            const active = location.pathname === tab.to;
-            return (
-                <Link
-                    key={tab.to}
-                    to={tab.to}
-                    onClick={() => isMobile && setMobileOpen(false)}
-                    title={collapsed && !isMobile ? tab.label : undefined}
-                    className={cn(
-                        "flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-xs font-medium transition-all duration-200",
-                        active
-                            ? "bg-primary/12 text-primary shadow-sm glow-border"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
-                    )}
-                >
-                  <tab.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
-                  {(!collapsed || isMobile) && <span>{tab.label}</span>}
-                </Link>
-            );
-          })}
-        </nav>
-      </>
+    <>
+      <div className="px-4 py-4 border-b border-border/50">
+        <p className="font-display text-xs font-bold text-foreground">{title}</p>
+        {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
+      </div>
+      <nav className="flex-1 p-2 space-y-0.5">
+        {tabs.map((tab) => {
+          const active = location.pathname === tab.to;
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              onClick={() => isMobile && setMobileOpen(false)}
+              className={cn(
+                "flex items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-xs font-medium transition-all duration-200",
+                active
+                  ? "bg-primary/12 text-primary shadow-sm glow-border"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/70",
+              )}
+            >
+              <tab.icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
+              <span>{tab.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 
   if (isMobile) {
     return (
-        <div className="animate-fade-in relative">
-          {/* Mobile toggle button */}
-          {!mobileOpen && (
-              <button
-                  onClick={() => setMobileOpen(true)}
-                  className="fixed bottom-5 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-          )}
-
-          {/* Overlay backdrop */}
-          {mobileOpen && (
-              <div
-                  className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-                  onClick={() => setMobileOpen(false)}
-              />
-          )}
-
-          {/* Sidebar drawer */}
-          <aside
-              className={cn(
-                  "fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border/60 shadow-floating transition-transform duration-300 flex flex-col",
-                  mobileOpen ? "translate-x-0" : "-translate-x-full"
-              )}
+      <div className="animate-fade-in relative">
+        {/* Mobile toggle button */}
+        {!mobileOpen && (
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="fixed bottom-5 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white"
           >
-            <div className="p-4 border-b border-border/50 flex items-center justify-between">
-              <div>
-                <p className="font-display text-sm font-bold">{title}</p>
-                {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
-              </div>
-              <button onClick={() => setMobileOpen(false)} className="text-muted-foreground hover:text-foreground rounded-lg p-1 hover:bg-secondary transition-colors">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <SidebarContent />
-          </aside>
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
 
-          <main className="min-h-[calc(100vh-4rem)] p-4">
-            <div className="mx-auto w-full max-w-7xl">
-              {children}
+        {/* Overlay backdrop */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setMobileOpen(false);
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close sidebar"
+          />
+        )}
+
+        {/* Sidebar drawer */}
+        <aside
+          className={cn(
+            "fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border/60 shadow-floating transition-transform duration-300 flex flex-col",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="p-4 border-b border-border/50 flex items-center justify-between">
+            <div>
+              <p className="font-display text-sm font-bold">{title}</p>
+              {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{subtitle}</p>}
             </div>
-          </main>
-        </div>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="text-muted-foreground hover:text-foreground rounded-lg p-1 hover:bg-secondary transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <SidebarContent />
+        </aside>
+
+        <main className="min-h-[calc(100vh-4rem)] p-4">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
+      </div>
     );
   }
 
   return (
-      <div className="animate-fade-in">
-        <div className="flex min-h-[calc(100vh-4rem)]">
-          <aside
-              className={cn(
-                  "sticky top-16 self-start shrink-0 border-r border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-500 flex flex-col",
-                  collapsed ? "w-14" : "w-56"
-              )}
-              style={{ height: "calc(100vh - 4rem)" }}
-          >
-            <SidebarContent />
-          </aside>
-          <main className="flex-1 p-6 min-w-0">
-            <div className="mx-auto w-full max-w-7xl">
-              {children}
-            </div>
-          </main>
-        </div>
+    <div className="animate-fade-in">
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        <aside
+          className="sticky top-16 self-start shrink-0 w-56 border-r border-border/50 bg-card/50 backdrop-blur-sm flex flex-col"
+          style={{ height: "calc(100vh - 4rem)" }}
+        >
+          <SidebarContent />
+        </aside>
+        <main className="flex-1 p-6 min-w-0">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
+    </div>
   );
 }
-

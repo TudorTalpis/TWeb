@@ -1,4 +1,4 @@
-import type { AppState } from "@/types";
+import type { AppState, AppUser } from "@/types";
 
 const KEYS = {
   session: "app_session",
@@ -16,9 +16,19 @@ const KEYS = {
 
 type PersistedKey = keyof typeof KEYS;
 
+/** Strip sensitive fields before persistence */
+function sanitizeUser(user: AppUser): Omit<AppUser, "password"> & { password?: never } {
+  const { password: _, ...safeUser } = user;
+  return safeUser;
+}
+
 export function saveState(state: AppState) {
   for (const [key, storageKey] of Object.entries(KEYS) as Array<[PersistedKey, (typeof KEYS)[PersistedKey]]>) {
-    localStorage.setItem(storageKey, JSON.stringify(state[key]));
+    // Sanitize users before saving to remove passwords
+    const data = key === "users" 
+      ? (state[key] as AppUser[]).map(sanitizeUser)
+      : state[key];
+    localStorage.setItem(storageKey, JSON.stringify(data));
   }
 }
 
