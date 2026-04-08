@@ -37,7 +37,8 @@ public class UserService : IUserService
             UserId = user.Id,
             Role = user.Role.ToString(),
             Name = user.Name,
-            Email = user.Email
+            Email = user.Email,
+            IsDemo = user.Email.EndsWith("@demo.com", StringComparison.OrdinalIgnoreCase)
         };
     }
 

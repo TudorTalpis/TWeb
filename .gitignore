@@ -100,3 +100,7 @@ ehthumbs.db
 Desktop.ini
 
 *.md
+.git
+.husky
+.idea
+.qwen

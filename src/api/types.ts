@@ -21,6 +21,7 @@ export interface AuthResponse {
   role: string;
   name: string;
   email: string;
+  isDemo: boolean;
 }
 
 // ============ USER DTOs ============
