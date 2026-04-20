@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,21 +10,22 @@ namespace TWeb.API.Controllers;
 [Route("api/[controller]")]
 public class AvailabilityController : ControllerBase
 {
-    private readonly IAvailabilityService _availabilityService;
+    private readonly IProviderAction _availabilityService = new BusinessLogic().ProviderAction();
 
-    public AvailabilityController(IAvailabilityService availabilityService)
+    public AvailabilityController()
     {
-        _availabilityService = availabilityService;
     }
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(_availabilityService.GetAll());
+    public IActionResult GetAll() => Ok(_availabilityService.GetAllAvailabilityAction());
 
     [HttpGet("provider/{providerId}")]
     public IActionResult GetByProviderId(string providerId) =>
-        Ok(_availabilityService.GetByProviderId(providerId));
+        Ok(_availabilityService.GetByProviderIdAvailabilityAction(providerId));
 
     [HttpPut("provider/{providerId}")]
     public IActionResult SetForProvider(string providerId, [FromBody] List<AvailabilityDto> slots) =>
-        Ok(_availabilityService.SetForProvider(providerId, slots));
+        Ok(_availabilityService.SetForProviderAvailabilityAction(providerId, slots));
 }
+
+
