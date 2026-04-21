@@ -66,6 +66,7 @@ const Login = (): JSX.Element => {
             phone: "",
             password: "",
             role: response.role as AppUser["role"],
+            isDemo: response.isDemo,
           },
         });
       }
@@ -214,30 +215,37 @@ const Login = (): JSX.Element => {
               </Button>
             </form>
 
-            <div className="rounded-2xl border border-border/40 bg-secondary/30 p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">
-                {t("auth.signIn.demoAccounts")}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {state.users.map((u: AppUser) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => {
-                      setIdentifier(u.email || u.name);
-                      setPassword(u.password);
-                      setError("");
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-border/50 bg-card px-2.5 py-1.5 text-xs font-medium transition-all hover:bg-secondary hover:border-primary/30 hover:text-primary"
-                  >
-                    {u.name.split(" ")[0]}
-                    <Badge variant="outline" className="text-[9px] capitalize px-1 py-0 border-primary/30 text-primary">
-                      {u.role}
-                    </Badge>
-                  </button>
-                ))}
+            {state.users.filter((u) => u.isDemo).length > 0 && (
+              <div className="rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">
+                  {t("auth.signIn.demoAccounts")}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {state.users
+                    .filter((u) => u.isDemo)
+                    .map((u: AppUser) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          setIdentifier(u.email || u.name);
+                          setPassword(u.password);
+                          setError("");
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-border/50 bg-card px-2.5 py-1.5 text-xs font-medium transition-all hover:bg-secondary hover:border-primary/30 hover:text-primary"
+                      >
+                        {u.name.split(" ")[0]}
+                        <Badge
+                          variant="outline"
+                          className="text-[9px] capitalize px-1 py-0 border-primary/30 text-primary"
+                        >
+                          {u.role}
+                        </Badge>
+                      </button>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TWeb.BusinessLayer.DTOs;
+using TWeb.BusinessLayer;
+using TWeb.Domain.Models;
+
 using TWeb.BusinessLayer.Interfaces;
 
 namespace TWeb.API.Controllers;
@@ -8,20 +10,19 @@ namespace TWeb.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IUserAction _userService = new BusinessLogic().UserAction();
 
-    public UsersController(IUserService userService)
+    public UsersController()
     {
-        _userService = userService;
     }
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(_userService.GetAll());
+    public IActionResult GetAll() => Ok(_userService.GetAllUserAction());
 
     [HttpGet("{id}")]
     public IActionResult GetById(string id)
     {
-        var user = _userService.GetById(id);
+        var user = _userService.GetUserByIdAction(id);
         if (user == null) return NotFound(new { message = $"User {id} not found" });
         return Ok(user);
     }
@@ -29,8 +30,10 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public IActionResult Update(string id, [FromBody] UpdateUserDto dto)
     {
-        var user = _userService.Update(id, dto);
+        var user = _userService.UpdateUserAction(id, dto);
         if (user == null) return NotFound(new { message = $"User {id} not found" });
         return Ok(user);
     }
 }
+
+

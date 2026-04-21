@@ -10,6 +10,7 @@ export interface AppUser {
   password: string;
   role: Role;
   avatar?: string;
+  isDemo?: boolean;
 }
 
 // ============ SESSION ============

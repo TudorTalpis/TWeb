@@ -1,24 +1,30 @@
-using Microsoft.Extensions.DependencyInjection;
 using TWeb.BusinessLayer.Interfaces;
-using TWeb.BusinessLayer.Services;
+using TWeb.BusinessLayer.Structure;
 
-namespace TWeb.BusinessLayer;
-
-public static class BusinessLogic
+namespace TWeb.BusinessLayer
 {
-    public static IServiceCollection AddBusinessLogic(this IServiceCollection services)
+    public class BusinessLogic
     {
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IProviderProfileService, ProviderProfileService>();
-        services.AddScoped<IServiceService, ServiceService>();
-        services.AddScoped<IAvailabilityService, AvailabilityService>();
-        services.AddScoped<ITimeOffService, TimeOffService>();
-        services.AddScoped<IBookingService, BookingService>();
-        services.AddScoped<IApplicationService, ApplicationService>();
-        services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<INotificationService, NotificationService>();
+        public BusinessLogic() { }
 
-        return services;
+        public IUserAction UserAction()
+        {
+            return new UserActionExecution();
+        }
+
+        public IServiceAction ServiceAction()
+        {
+            return new ServiceActionExecution();
+        }
+
+        public IProviderAction ProviderAction()
+        {
+            return new ProviderActionExecution();
+        }
+
+        public IBookingAction BookingAction()
+        {
+            return new BookingActionExecution();
+        }
     }
 }
